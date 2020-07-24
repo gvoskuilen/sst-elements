@@ -29,7 +29,11 @@ libsimpleElementExample_la_SOURCES = \
 	simpleModule.h \
 	simpleModule.cc \
 	simpleParamComponent.h \
-	simpleParamComponent.cc
+	simpleParamComponent.cc \
+	simpleNetworkExample/nicSubComponent.h \
+	simpleNetworkExample/nicSubComponent.cc \
+	simpleNetworkExample/endpoint.h \
+	simpleNetworkExample/endpoint.cc
 
 deprecated_libsimpleElementExample_sources =
 

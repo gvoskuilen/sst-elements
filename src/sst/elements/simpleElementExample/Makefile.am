@@ -8,28 +8,19 @@ AM_CPPFLAGS = \
 compdir = $(pkglibdir)
 comp_LTLIBRARIES = libsimpleElementExample.la
 libsimpleElementExample_la_SOURCES = \
-	simpleComponent.h \
-	simpleComponent.cc \
-	simpleComponentEvent.h \
-	simpleClockerComponent.h \
-	simpleClockerComponent.cc \
-	simpleDistribComponent.h \
-	simpleDistribComponent.cc \
-	simpleRNGComponent.h \
-	simpleRNGComponent.cc \
-	simpleStatisticsComponent.h \
-	simpleStatisticsComponent.cc \
-	simpleMessage.h \
-	simpleMessageGeneratorComponent.h \
-	simpleMessageGeneratorComponent.cc \
-	simpleLookupTableComponent.h \
-	simpleLookupTableComponent.cc \
-	simpleSubComponent.h \
-	simpleSubComponent.cc \
-	simpleModule.h \
-	simpleModule.cc \
-	simpleParamComponent.h \
-	simpleParamComponent.cc
+	basicEvent.h \
+	example0.h \
+	example0.cc \
+	example1.h \
+	example1.cc \
+	basicLinks.h \
+	basicLinks.cc \
+ 	basicStatistics.h \
+     	basicStatistics.cc
+     	basicClocks.h \
+     	basicClocks.cc \
+	basicParams.h \
+	basicParams.cc
 
 deprecated_libsimpleElementExample_sources =
 

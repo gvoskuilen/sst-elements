@@ -11,6 +11,8 @@ import sst
 #   simpleElementExample/example0.h
 #   simpleElementExample/example0.cc
 #   simpleElementExample/basicEvent.h
+# Output:
+#   simpleElementExample/tests/refFiles/example0.out
 #
 
 ### Create the components

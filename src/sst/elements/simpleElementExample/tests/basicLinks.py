@@ -2,7 +2,7 @@
 import sst
 
 # The BasicLinks component demonstrates ways of handling events on a link
-# It is similar to example0/example1 except that the component has many links and
+# It is similar to example0 and example1 except that the component has many links and
 # it randomly selects a link to send each event on. The RNG is seeded by a parameter
 # so that each component has unique behavior.
 # It also provides a port_vector%d port that can have an arbitrary number of connections.
@@ -14,6 +14,8 @@ import sst
 #   simpleElementExample/basicLinks.h
 #   simpleElementExample/basicLinks.cc
 #   simpleElementExample/basicEvent.h
+# Output:
+#   simpleElementExample/tests/refFiles/basicLinks.out
 #
 
 ### Create the components
@@ -72,19 +74,24 @@ handle_link0.connect( (component0, "port_handler", "10ns"), (component2, "port_h
 handle_link1.connect( (component1, "port_handler", "10ns"), (component3, "port_handler", "10ns") )
 
 # For port_vector%d, connect each component to each other component
-# Connect (0, 1) and (2, 3) via port_vector0
+# There is no limit on the number of port_vectorX links per component
+# The Component is written to look for contiguous port numbers so we must 
+# ensure the numbering here is contiguous or the Component won't discover
+# the links correctly
+
+# Connect (component0, component1) and (component2, component3) via port_vector0
 port_vector0 = sst.Link("link_vector0")
 port_vector1 = sst.Link("link_vector1")
 port_vector0.connect( (component0, "port_vector0", "1ns"), (component1, "port_vector0", "1ns") )
 port_vector1.connect( (component2, "port_vector0", "1ns"), (component3, "port_vector0", "1ns") )
 
-# Connect (0, 2) and (1, 3) via port_vector1
+# Connect components (0, 2) and (1, 3) via port_vector1
 port_vector2 = sst.Link("link_vector2")
 port_vector3 = sst.Link("link_vector3")
 port_vector2.connect( (component0, "port_vector1", "1ns"), (component2, "port_vector1", "1ns") )
 port_vector3.connect( (component1, "port_vector1", "1ns"), (component3, "port_vector1", "1ns") )
 
-# Connect (0, 3) and (1, 2) via port_vector2
+# Connect components (0, 3) and (1, 2) via port_vector2
 port_vector4 = sst.Link("link_vector4")
 port_vector5 = sst.Link("link_vector5")
 port_vector4.connect( (component0, "port_vector2", "1ns"), (component2, "port_vector2", "1ns") )

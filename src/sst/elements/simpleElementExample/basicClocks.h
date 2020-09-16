@@ -57,10 +57,10 @@ public:
     // Document the parameters that this component accepts
     // { "parameter_name", "description", "default value or NULL if required" }
     SST_ELI_DOCUMENT_PARAMS(
-        { "clock0",     "Frequency (with units) of clock0",     "1GHz" },
-        { "clock1",     "Frequency (with units) of clock1",     "650MHz" },
-        { "clock2",     "Frequency (with units) of clock2",     "1GHz" },
-        { "clockTicks", "Number of clock0 ticks to execute",    "100000" }
+        { "clock0",     "Frequency or period (with units) of clock0",     "1GHz" },
+        { "clock1",     "Frequency or period (with units) of clock1",     "5ns" },
+        { "clock2",     "Frequency or period (with units) of clock2",     "15ns" },
+        { "clockTicks", "Number of clock0 ticks to execute",    "500" }
     )
 
     // Optional since there is nothing to document
@@ -82,31 +82,30 @@ public:
 
 private:
    
-    // Clock handlers for our three clocks
-    virtual bool clock0Tick(SST::Cycle_t cycles);
-    virtual bool clock1Tick(SST::Cycle_t cycles, uint32_t num);
-    virtual bool clock2Tick(SST::Cycle_t cycles, uint32_t num);
+    // Clock handler for clock0
+    bool mainTick(SST::Cycle_t cycle);
 
-    TimeConverter* tc;                  // Timeconverter for clock2
+    // Clock handler for clock1 and clock2
+    bool otherTick(SST::Cycle_t cycle, uint32_t id);
+    
+    // TimeConverters - see timeConverter.h/.cc in sst-core
+    // These store a clock interval and can be used to convert between time
+    TimeConverter* clock1converter;     // TimeConverter for clock1
+    TimeConverter* clock2converter;     // TimeConverter for clock2
     Clock::HandlerBase* clock2Handler; // Clock2 handler (clock2Tick)
 
-    void handleEvent(SST::Event *ev);
-
-    // Event handler, called when an event is received on one of link vector elements
-    void handleEventWithID(SST::Event *ev, int linknum);
-
-    // Clock handler, called on each clock cycle
-    virtual bool clockTic(SST::Cycle_t);
 
     // Params
-    Cycles_t clockCount;
+    Cycle_t cycleCount;
     std::string clock0Freq;
     std::string clock1Freq;
     std::string clock2Freq;
 
     // SST Output object, for printing, error messages, etc.
     SST::Output* out;
-     
+    
+    // Number of cycles between print statements in otherTick
+    Cycle_t printInterval;
 };
 
 } // namespace simpleElementExample

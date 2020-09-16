@@ -110,16 +110,16 @@ public:
                 } else if (pos == 0) {
                     Output * out = new Output("", 1, 0, Output::STDOUT);
                     out->fatal(CALL_INFO, -1, "Error initializing ExampleType. No key found in string '%s'\n", str.c_str());
-                } else if (pos == (string.size() - 1)) {
+                } else if (pos == (str.size() - 1)) {
                     Output * out = new Output("", 1, 0, Output::STDOUT);
                     out->fatal(CALL_INFO, -1, "Error initializing ExampleType. No value found in string '%s'\n", str.c_str());
                 }
 
-               key = str.substring(0, pos);  // Everything before ':'
-               value = std::stoi(str.substring(pos+1)); // Everything after ':'
+               key = str.substr(0, pos);             // Everything before ':'
+               value = std::stoi(str.substr(pos+1)); // Everything after ':'
             }
 
-            ExampleType(std::string k, int v), key(k), value(v) { }
+            ExampleType(std::string k, int v) : key(k), value(v) { }
 
             std::string key;
             int value;
@@ -127,27 +127,8 @@ public:
 
 private:
    
-    // Clock handlers for our three clocks
-    virtual bool clock0Tick(SST::Cycle_t cycles);
-    virtual bool clock1Tick(SST::Cycle_t cycles, uint32_t num);
-    virtual bool clock2Tick(SST::Cycle_t cycles, uint32_t num);
-
-    TimeConverter* tc;                  // Timeconverter for clock2
-    Clock::HandlerBase* clock2Handler; // Clock2 handler (clock2Tick)
-
-    void handleEvent(SST::Event *ev);
-
-    // Event handler, called when an event is received on one of link vector elements
-    void handleEventWithID(SST::Event *ev, int linknum);
-
-    // Clock handler, called on each clock cycle
-    virtual bool clockTic(SST::Cycle_t);
-
-    // Params
-    Cycles_t clockCount;
-    std::string clock0Freq;
-    std::string clock1Freq;
-    std::string clock2Freq;
+    // Clock handler
+    bool tick(SST::Cycle_t cycles);
 
     // SST Output object, for printing, error messages, etc.
     SST::Output* out;

@@ -54,7 +54,7 @@ basicParams::basicParams(ComponentId_t id, Params& params) : Component(id) {
     double param2 = params.find<double>("double_param", 12.5);
     std::string param3 = params.find<std::string>("string_param", "hello");
 
-    out->output("Found basic parameters: bool_param=%d, uint32_param=%" PRIu32 ", double_param=%f, string_param=%s\n",
+    out->output("Found basic parameters: bool_param = %d, uint32_param = %" PRIu32 ", double_param = %f, string_param = %s\n",
             param0, param1, param2, param3.c_str());
 
     // Example 2: discover whether a parameter was passed in from the python or not
@@ -63,7 +63,7 @@ basicParams::basicParams(ComponentId_t id, Params& params) : Component(id) {
     
     if (!found) {
         out->fatal(CALL_INFO, -1, "Uh oh, in '%s', int_param is a required parameter, but it wasn't found in the parameter set.\n",
-                getName().c_str()\n);
+                getName().c_str());
     } else {
         out->output("Found the required parameter 'int_param' and got %d\n", param4);
     }
@@ -72,14 +72,20 @@ basicParams::basicParams(ComponentId_t id, Params& params) : Component(id) {
     UnitAlgebra param5 = params.find<UnitAlgebra>("ua_param", "2TB/s");
     ExampleType param6 = params.find<ExampleType>("example_param", "key:5");
 
-    out->output("Read ua_param=%s\n", param5.toStringBestSI().c_str());
-    out->output("Read example_param. key=%s, value=%d\n", param6.key.c_str(), param6.value.c_str());
+    out->output("Read ua_param = %s\n", param5.toStringBestSI().c_str());
+    out->output("Read example_param. key = %s, value = %d\n", param6.key.c_str(), param6.value);
 
     // It is also possible to pass in arrays
     // The formatting is based on Python lists, see params.h/.cc in sst-core for a detailed description
     std::vector<int> intArray;
     params.find_array<int>("array_param", intArray);
     
+    out->output("Read an array from array_param. Elements are: \n");
+    for (std::vector<int>::iterator it = intArray.begin(); it != intArray.end(); it++) {
+        out->output("%d, ", *it);
+    }
+    out->output("\n");
+
     // Tell the simulation not to end until we're ready
     registerAsPrimaryComponent();
     primaryComponentDoNotEndSim();

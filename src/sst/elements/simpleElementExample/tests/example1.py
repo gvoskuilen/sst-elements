@@ -8,6 +8,8 @@ import sst
 #   simpleElementExample/example1.h
 #   simpleElementExample/example1.cc
 #   simpleElementExample/basicEvent.h
+# Output:
+#   simpleElementExample/tests/refFiles/example1.out
 #
 
 ### Create the components
@@ -34,8 +36,6 @@ sst.setStatisticLoadLevel(7)
 
 # Determine where statistics should be sent
 sst.setStatisticOutput("sst.statOutputConsole") 
-#sst.setStatisticOutput("sst.statOutputCSV", { "filepath" : "./example1.csv", "seperator" : "," } ) 
-#sst.setStatisticOutput("sst.statOutputTXT", { "filepath" : "./example1.txt" } )
 
 # Enable statistics on both components
 sst.enableAllStatisticsForComponentType("simpleElementExample.example1")

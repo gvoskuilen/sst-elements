@@ -66,21 +66,24 @@ basicClocks::basicClocks(ComponentId_t id, Params& params) : Component(id) {
     // Main clock (clock 0)
     // Clock can be registered with a string or UnitAlgebra, here we use the string
     registerClock(clock0Freq, new Clock::Handler<basicClocks>(this, &basicClocks::mainTick));
-    out->output("Registering clock #1 at %s\n", clock0Freq.c_str());
+    
+    out->output("Registering clock0 at %s\n", clock0Freq.c_str());
 
     // Second clock, here we'll use the UnitAlgebra to register
     // Clock handler can add a template parameter. In this example clock1 and clock2 share a handler but
     // pass unique IDs in to it to differentiate
     // We also save the registerClock return value (a TimeConverter) so that we can use it later (see mainTick)
     clock1converter = registerClock(clock1Freq_ua, 
-            new Clock::Handler<basicClocks, uint32_t>(this, &basicClocks::otherTick, 0));
-    out->output("Registering clock #2 at %s (that's %s or %s if we convert the UnitAlgebra to string)\n",
+            new Clock::Handler<basicClocks, uint32_t>(this, &basicClocks::otherTick, 1));
+    
+    out->output("Registering clock1 at %s (that's %s or %s if we convert the UnitAlgebra to string)\n",
             clock1Freq.c_str(), clock1Freq_ua.toString().c_str(), clock1Freq_ua.toStringBestSI().c_str());
 
     // Last clock, as with clock1, the handler has an extra parameter and we save the registerClock return parameter
-    ClockHandler* handler = new Clock::Handler<basicClock, uint32_t>(this, &basicClocks::otherTick, 1);
+    Clock::HandlerBase* handler = new Clock::Handler<basicClocks, uint32_t>(this, &basicClocks::otherTick, 2);
     clock2converter = registerClock(clock2Freq, handler);
-    out->output("Registering clock #2 at %s\n", clock2Freq.c_str());
+    
+    out->output("Registering clock2 at %s\n", clock2Freq.c_str());
 
     // This component prints the clock cycles & time every so often so calculate a print interval
     // based on simulation time
@@ -119,11 +122,11 @@ bool basicClocks::mainTick( Cycle_t cycles)
 
     }
 
-    clockCycles--;
+    cycleCount--;
 
     // Check if exit condition is met
     // If so, tell the simulation it can end
-    if (clockCycles == 0) {
+    if (cycleCount == 0) {
         primaryComponentOKToEndSim();
         return true;
     } else {

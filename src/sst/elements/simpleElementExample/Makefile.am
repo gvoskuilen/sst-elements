@@ -39,8 +39,7 @@ EXTRA_DIST = \
     tests/basicStatistics1.py \
     tests/basicStatistics2.py
 
-
-deprecated_EXTRA_DIST = 
+deprecated_EXTRA_DIST =
 
 if !SST_ENABLE_PREVIEW_BUILD
 EXTRA_DIST += $(deprecated_EXTRA_DIST)

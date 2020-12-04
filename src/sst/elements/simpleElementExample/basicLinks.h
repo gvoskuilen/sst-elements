@@ -17,14 +17,28 @@
 #define _BASICLINKS_H
 
 /*
- * This example demonstrates different ways of managing links
- *  1. Event sizes are randomly selected between 0 and eventSize for each event
- *  2. The component uses a Statistic to count the number of payload bytes it received
+ * Summary: This example demonstrates different ways creating ports and managing links.
  *
  * Concepts covered:
  *  - Event handlers
- *  - Multiple links, optional ports
  *  - Polling links
+ *  - Optional ports
+ *  - Vector ports
+ *  - Statistics
+ *
+ * Description
+ *  The component has two ports and one port vector. The 'port_handler' port uses an Event handler 
+ *  to manage event arrival. The 'port_polled' port is polled using a clock function. The 
+ *  'port_vector%d' vector of ports is a set of ports named port_vector0, port_vector1, etc. These 
+ *  ports are handled using an Event handler like the 'port_handler' port.
+ *  The component also has a staatistic for each port that counts the number of bytes received on the port.
+ *  All ports expect events of type 'simpleElementExample::basicEvent', which include 
+ *
+ * Simulation
+ *  The component configures each link and creates a clock so that it can poll the polled port. It
+ *  1. Event sizes are randomly selected between 0 and eventSize for each event
+ *  2. The component uses a Statistic to count the number of payload bytes it received
+ *
  *
  */
 

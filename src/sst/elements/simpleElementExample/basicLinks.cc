@@ -43,12 +43,12 @@ basicLinks::basicLinks(ComponentId_t id, Params& params) : Component(id) {
     // - Output to STDOUT (Output::STDOUT)
     out = new Output("", 1, 0, Output::STDOUT);
 
-    // Get parameter from the Python input
+    // Get parameters from the Python input
     bool found;
     eventsToSend = params.find<int64_t>("eventsToSend", 0, found);
 
     // If parameter wasn't found, end the simulation with exit code -1.
-    // Tell the user how to fix the error (set 'eventsToSend' parameter in the input) 
+    // Tell the user what went wrong (didn't find 'eventsToSend' parameter in the input) 
     // and which component generated the error (getName())
     if (!found) {
         out->fatal(CALL_INFO, -1, "Error in %s: the input did not specify 'eventsToSend' parameter\n", getName().c_str());
@@ -120,7 +120,7 @@ basicLinks::basicLinks(ComponentId_t id, Params& params) : Component(id) {
     // This version of registering statistics registers one statistic name with multiple unique "SubID" strings (index in this case)
     // Each SubID is counted separately
     for (size_t i = 0; i < linkVector.size(); i++) {
-        Statistic<uint64_t>* stat = registerStatistic<uint64_t>("EventSize_PortHandler", std::to_string(i));
+        Statistic<uint64_t>* stat = registerStatistic<uint64_t>("EventSize_PortVector", std::to_string(i));
         stat_portVector.push_back(stat);
     }
 

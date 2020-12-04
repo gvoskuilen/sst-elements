@@ -41,7 +41,7 @@ basicClocks::basicClocks(ComponentId_t id, Params& params) : Component(id) {
     clock2Freq = params.find<std::string>("clock2", "15ns");
     cycleCount = params.find<Cycle_t>("clockTicks", "500");
 
-    // Use SST's UnitAlgebra to error check the clock parameters
+    // Use UnitAlgebra to error check the clock parameters
     // Check that all frequencies have time units associated
     UnitAlgebra clock0Freq_ua(clock0Freq);
     UnitAlgebra clock1Freq_ua(clock1Freq);

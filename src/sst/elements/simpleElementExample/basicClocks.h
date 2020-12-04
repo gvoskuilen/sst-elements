@@ -17,14 +17,26 @@
 #define _BASICCLOCKS_H
 
 /*
- * This example demonstrates different ways of managing links
- *  1. Event sizes are randomly selected between 0 and eventSize for each event
- *  2. The component uses a Statistic to count the number of payload bytes it received
+ * Summary: This example demonstrates registering clocks and handlers.
  *
  * Concepts covered:
  *  - Clocks and clock handlers
  *  - TimeConverters
  *  - UnitAlgebra for error checking
+ *
+ * Description:
+ *  The component registers three clocks with parameterizable frequencies. 
+ *  The constructor uses UnitAlgebra to check that each frequency parameter includes units.
+ *  Clock0 uses mainTick as its handler. Clock1 and Clock2 use otherTick as their handler 
+ *  and pass an id (1 and 2, respectively) that identifies which clock is calling the shared handler.
+ *
+ * Simulation:
+ *  The simulation runs until Clock0 has executed 'clockTicks' cycles. Clock0 prints a message to 
+ *  STDOUT ten times during the simulation (see 'printInterval' variable). This notification prints
+ *  Clock0's current cycle, the simulation time, and uses Clock1 and Clock2's TimeConverters to print
+ *  the current time in terms of Clock1 and Clock2 cycles.
+ *  Clock1 and Clock2 print a notification each time their handler is called. After ten ticks, Clock1 and
+ *  Clock2 suspend themselves.
  */
 
 #include <sst/core/component.h>
@@ -104,7 +116,7 @@ private:
     // SST Output object, for printing, error messages, etc.
     SST::Output* out;
     
-    // Number of cycles between print statements in otherTick
+    // Number of cycles between print statements in mainTick
     Cycle_t printInterval;
 };
 

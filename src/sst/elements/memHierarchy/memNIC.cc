@@ -37,12 +37,7 @@ using namespace SST::Interfaces;
 
 /* Constructor */
 
-MemNIC::MemNIC(ComponentId_t id, Params &params) : MemNICBase(id, params) {
-    build(params);
-}
-
-void MemNIC::build(Params& params) {
-
+MemNIC::MemNIC(ComponentId_t id, Params &params, std::string tb) : MemNICBase(id, params, tb) {
     link_control = loadUserSubComponent<SimpleNetwork>("linkcontrol", ComponentInfo::SHARE_NONE, 1); // 1 is the num virtual networks
     if (!link_control) {
         Params netparams;
@@ -62,6 +57,8 @@ void MemNIC::build(Params& params) {
 
     // Packet size
     packetHeaderBytes = extractPacketHeaderSize(params, "min_packet_size");
+
+    bufferlink = configureSelfLink("buffer", timebase, new Event::Handler<MemNIC>(this, &MemNIC::wakeup));
 }
 
 void MemNIC::init(unsigned int phase) {
@@ -73,12 +70,17 @@ void MemNIC::init(unsigned int phase) {
  * Called by parent on a clock
  * Returns whether anything sent this cycle
  */
+void MemNIC::wakeup(SST::Event *ev) {
+    // ev is nullptr so no delete!
+    if (!sendQueue.empty()) {
+        if (!drainQueue(&sendQueue, link_control)) {
+            bufferlink->send(1, nullptr);
+        }           
+    }
+}
+
 bool MemNIC::clock() {
-    if (sendQueue.empty()) return true;
-
-    drainQueue(&sendQueue, link_control);
-
-    return false;
+    return true;
 }
 
 /*
@@ -104,6 +106,12 @@ bool MemNIC::recvNotify(int) {
 
 /* Send event to memNIC */
 void MemNIC::send(MemEventBase *ev) {
+    std::string debugEvStr;
+    if (is_debug_event(ev)) {
+        debugEvStr = ev->getBriefString();
+        dbg.debug(_L9_, "   %-20" PRIu64 "                      %-20s Enqueue       (%s)\n", 
+            Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), debugEvStr.c_str());
+    }
     SimpleNetwork::Request *req = new SimpleNetwork::Request();
     MemRtrEvent * mre = new MemRtrEvent(ev);
     req->src = info.addr;
@@ -112,12 +120,21 @@ void MemNIC::send(MemEventBase *ev) {
     req->vn = 0;
 
     if (is_debug_event(ev)) {
-        dbg.debug(_L9_, "%s, memNIC adding to send queue: dst: %s, bits: %zu, cmd: %s\n",
-                getName().c_str(), ev->getDst().c_str(), req->size_in_bits, CommandString[(int)ev->getCmd()]);
+        //dbg.debug(_L9_, "%s, memNIC adding to send queue: dst: %s, bits: %zu, cmd: %s\n",
+        //        getName().c_str(), ev->getDst().c_str(), req->size_in_bits, CommandString[(int)ev->getCmd()]);
     }
 
     req->givePayload(mre);
-    sendQueue.push(req);
+    // If sendqueue not empty, enqueue (wakeup already queued)
+    if (!sendQueue.empty()) {
+        sendQueue.push(req);
+    } else {
+        sendQueue.push(req);
+        if (!drainQueue(&sendQueue, link_control)) {
+            bufferlink->send(1, nullptr); // Retry next cycle
+        }
+        
+    }
 }
 
 

@@ -68,7 +68,7 @@ public:
 
 /* Begin class definition */
     /* Constructor */
-    MemNIC(ComponentId_t id, Params &params);
+    MemNIC(ComponentId_t id, Params &params, std::string timebase);
 
     /* Destructor */
     virtual ~MemNIC() { }
@@ -77,6 +77,8 @@ public:
     bool clock();
     void send(MemEventBase * ev);
     MemEventBase * recv();
+    void wakeup(SST::Event* ev);
+    virtual bool isClocked() { return false; }
 
     /* Callback to notify when link_control receives a message */
     bool recvNotify(int);
@@ -105,8 +107,8 @@ private:
     std::queue<SST::Interfaces::SimpleNetwork::Request*> sendQueue; // Queue of events waiting to be sent (sent on clock)
 
 private:
-
-    void build(Params &params);
+    // Self link for managing internal message queue
+    Link * bufferlink;
 };
 
 } //namespace memHierarchy

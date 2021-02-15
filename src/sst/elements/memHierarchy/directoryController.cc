@@ -63,9 +63,10 @@ DirectoryController::DirectoryController(ComponentId_t id, Params &params) :
         DEBUG_ADDR.insert(*it);
     }
 
-    registerTimeBase("1 ns", true); // TODO eliminate this
-
     std::string net_bw = params.find<std::string>("network_bw", "80GiB/s");
+
+    std::string clockfreq = params.find<std::string>("clock", "1GHz");
+    registerTimeBase(clockfreq, true); // TODO eliminate this
 
     MemRegion region;
     bool gotRegion = false;
@@ -130,8 +131,8 @@ DirectoryController::DirectoryController(ComponentId_t id, Params &params) :
      *  the MCs their own region. We cannot error check from the parameters...
      */
 
-    cpuLink = loadUserSubComponent<MemLinkBase>("cpulink");
-    memLink = loadUserSubComponent<MemLinkBase>("memlink");
+    cpuLink = loadUserSubComponent<MemLinkBase>("cpulink", ComponentInfo::SHARE_NONE, clockfreq);
+    memLink = loadUserSubComponent<MemLinkBase>("memlink", ComponentInfo::SHARE_NONE, clockfreq);
     if (cpuLink || memLink) {
         if (!cpuLink) {
             cpuLink = memLink;
@@ -191,10 +192,10 @@ DirectoryController::DirectoryController(ComponentId_t id, Params &params) :
             nicParams.insert("ack.port", "network_ack");
             nicParams.insert("fwd.port", "network_fwd");
             nicParams.insert("data.port", "network_data");
-            cpuLink = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemNICFour", "cpulink", 0, ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS, nicParams);
+            cpuLink = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemNICFour", "cpulink", 0, ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS, nicParams, clockfreq);
         } else {
             nicParams.insert("port", "network");
-            cpuLink = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemNIC", "cpulink", 0, ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS, nicParams);
+            cpuLink = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemNIC", "cpulink", 0, ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS, nicParams, clockfreq);
         }
 
         cpuLink->setRecvHandler(new Event::Handler<DirectoryController>(this, &DirectoryController::handlePacket));
@@ -207,7 +208,7 @@ DirectoryController::DirectoryController(ComponentId_t id, Params &params) :
             memParams.insert("addr_range_end", std::to_string(region.end), false);
             memParams.insert("interleave_size", ilSize, false);
             memParams.insert("interleave_step", ilStep, false);
-            memLink = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemLink", "memlink", 0, ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS, memParams);
+            memLink = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemLink", "memlink", 0, ComponentInfo::SHARE_PORTS | ComponentInfo::INSERT_STATS, memParams, clockfreq);
             memLink->setRecvHandler(new Event::Handler<DirectoryController>(this, &DirectoryController::handlePacket));
             if (!memLink) {
                 dbg.fatal(CALL_INFO, -1, "%s, Error creating link to memory from directory controller\n", getName().c_str());
@@ -226,7 +227,7 @@ DirectoryController::DirectoryController(ComponentId_t id, Params &params) :
     }
 
     clockHandler = new Clock::Handler<DirectoryController>(this, &DirectoryController::clock);
-    defaultTimeBase = registerClock(params.find<std::string>("clock", "1GHz"), clockHandler);
+    defaultTimeBase = registerClock(clockfreq, clockHandler);
     clockOn = true;
     if (memLink)
         clockMemLink = memLink->isClocked();
@@ -379,11 +380,11 @@ bool DirectoryController::clock(SST::Cycle_t cycle){
     sendOutgoingEvents();
 
     bool idle = true;
-    if (clockCpuLink)
+    /*if (clockCpuLink)
         idle &= cpuLink->clock();
     if (clockMemLink)
         idle &= memLink->clock();
-
+*/
     int requestsThisCycle = 0;
 
     addrsThisCycle.clear();
@@ -726,6 +727,9 @@ void DirectoryController::init(unsigned int phase) {
 
 
 void DirectoryController::finish(void){
+    if (!clockOn) { // Correct stats
+        turnClockOn();
+    }
     cpuLink->finish();
 }
 

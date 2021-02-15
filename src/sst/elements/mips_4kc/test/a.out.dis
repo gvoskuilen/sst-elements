@@ -1,0 +1,68 @@
+
+a.out:     file format elf32-tradlittlemips
+
+
+Disassembly of section .MIPS.abiflags:
+
+00400078 <.MIPS.abiflags>:
+  400078:	00010000 	sll	zero,at,0x0
+  40007c:	03000001 	0x3000001
+	...
+
+Disassembly of section .reginfo:
+
+00400090 <.reginfo>:
+  400090:	e0000004 	swc0	c0_index,4(zero)
+	...
+  4000a4:	004180c0 	0x4180c0
+
+Disassembly of section .text:
+
+00400090 <main>:
+  400090:	27bdfff0 	addiu	sp,sp,-16
+  400094:	afbe000c 	sw	s8,12(sp)
+  400098:	03a0f025 	move	s8,sp
+  40009c:	24020005 	li	v0,5
+  4000a0:	afc20000 	sw	v0,0(s8)
+  4000a4:	8fc20000 	lw	v0,0(s8)
+  4000a8:	00000000 	nop
+  4000ac:	00021040 	sll	v0,v0,0x1
+  4000b0:	afc20000 	sw	v0,0(s8)
+  4000b4:	00001025 	move	v0,zero
+  4000b8:	03c0e825 	move	sp,s8
+  4000bc:	8fbe000c 	lw	s8,12(sp)
+  4000c0:	27bd0010 	addiu	sp,sp,16
+  4000c4:	03e00008 	jr	ra
+  4000c8:	00000000 	nop
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	3a434347 	xori	v1,s2,0x4347
+   4:	72632820 	0x72632820
+   8:	7473736f 	jalx	1cdcdbc <_gp+0x18c4cfc>
+   c:	2d6c6f6f 	sltiu	t4,t3,28527
+  10:	3120474e 	andi	zero,t1,0x474e
+  14:	2e34322e 	sltiu	s4,s1,12846
+  18:	38202930 	xori	zero,at,0x2930
+  1c:	302e332e 	andi	t6,at,0x332e
+	...
+
+Disassembly of section .pdr:
+
+00000000 <.pdr>:
+   0:	00400090 	0x400090
+   4:	40000000 	mfc0	zero,c0_index
+   8:	fffffffc 	0xfffffffc
+	...
+  14:	00000010 	mfhi	zero
+  18:	0000001e 	0x1e
+  1c:	0000001f 	0x1f
+
+Disassembly of section .gnu.attributes:
+
+00000000 <.gnu.attributes>:
+   0:	00000f41 	0xf41
+   4:	756e6700 	jalx	5b99c00 <_gp+0x5781b40>
+   8:	00070100 	sll	zero,a3,0x4
+   c:	03040000 	0x3040000

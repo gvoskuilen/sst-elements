@@ -21,7 +21,7 @@ using namespace SST::Opal;
 
 /* Constructor */
 
-OpalMemNIC::OpalMemNIC(ComponentId_t id, Params &params) : SST::MemHierarchy::MemNICBase(id, params) {
+OpalMemNIC::OpalMemNIC(ComponentId_t id, Params &params, std::string tb) : SST::MemHierarchy::MemNICBase(id, params, tb) {
     build(params);
 }
 

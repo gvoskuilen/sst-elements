@@ -124,7 +124,11 @@ libmemHierarchy_la_SOURCES = \
 	Sieve/memmgr_sieve.cc \
 	Sieve/memmgr_sieve.h \
 	memNetBridge.h \
-	memNetBridge.cc
+	memNetBridge.cc \
+	mmio.h \
+	mmio.cc \
+	uart.h \
+	uart.cc
 
 EXTRA_DIST = \
 	tests/testsuite_default_memHierarchy_hybridsim.py \

@@ -94,10 +94,10 @@ bool Cache::clockTick(Cycle_t time) {
     bool idle = coherenceMgr_->sendOutgoingEvents();
 
     if (clockUpLink_) {
-        idle &= linkUp_->clock();
+    //    idle &= linkUp_->clock();
     }
     if (clockDownLink_) {
-        idle &= linkDown_->clock();
+    //    idle &= linkDown_->clock();
     }
 
     // MSHR occupancy
@@ -176,7 +176,6 @@ bool Cache::clockTick(Cycle_t time) {
     std::vector<MemEventBase*>* rBuf = coherenceMgr_->getRetryBuffer();
     std::copy( rBuf->begin(), rBuf->end(), std::back_inserter(retryBuffer_) );
     coherenceMgr_->clearRetryBuffer();
-
     idle &= coherenceMgr_->checkIdle();
 
     // Disable lower-level cache clocks if they're idle

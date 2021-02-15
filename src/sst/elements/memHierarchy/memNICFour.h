@@ -88,7 +88,7 @@ public:
 
     enum NetType { REQ, ACK, FWD, DATA };
     /* Constructor */
-    MemNICFour(ComponentId_t id, Params &params);
+    MemNICFour(ComponentId_t id, Params &params, std::string timebase);
 private:
     void build(Params& params);
 public:

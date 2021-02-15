@@ -3175,7 +3175,7 @@ Completed @ 5450 ns
  directory0.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  directory0.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  directory0.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- directory0.MSHR_occupancy : Accumulator : Sum.u64 = 505; SumSQ.u64 = 505; Count.u64 = 1908; Min.u64 = 0; Max.u64 = 1; 
+ directory0.MSHR_occupancy : Accumulator : Sum.u64 = 505; SumSQ.u64 = 505; Count.u64 = 7633; Min.u64 = 0; Max.u64 = 1; 
  memory0:backend.row_already_open : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  memory0:backend.no_row_open : Accumulator : Sum.u64 = 24; SumSQ.u64 = 24; Count.u64 = 24; Min.u64 = 1; Max.u64 = 1; 
  memory0:backend.wrong_row_open : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -3245,7 +3245,7 @@ Completed @ 5450 ns
  directory1.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  directory1.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  directory1.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- directory1.MSHR_occupancy : Accumulator : Sum.u64 = 506; SumSQ.u64 = 506; Count.u64 = 1961; Min.u64 = 0; Max.u64 = 1; 
+ directory1.MSHR_occupancy : Accumulator : Sum.u64 = 506; SumSQ.u64 = 506; Count.u64 = 7633; Min.u64 = 0; Max.u64 = 1; 
  memory1:backend.row_already_open : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  memory1:backend.no_row_open : Accumulator : Sum.u64 = 24; SumSQ.u64 = 24; Count.u64 = 24; Min.u64 = 1; Max.u64 = 1; 
  memory1:backend.wrong_row_open : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 

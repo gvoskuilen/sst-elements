@@ -1,0 +1,120 @@
+
+a.out3.vecTest:     file format elf32-tradlittlemips
+
+
+Disassembly of section .MIPS.abiflags:
+
+00400098 <.MIPS.abiflags>:
+  400098:	00010000 	sll	zero,at,0x0
+  40009c:	03000001 	0x3000001
+	...
+
+Disassembly of section .reginfo:
+
+004000b0 <.reginfo>:
+  4000b0:	f000001c 	0xf000001c
+	...
+  4000c4:	00418190 	0x418190
+
+Disassembly of section .text:
+
+004000b0 <main>:
+  4000b0:	27bdfff0 	addiu	sp,sp,-16
+  4000b4:	afbe000c 	sw	s8,12(sp)
+  4000b8:	03a0f025 	move	s8,sp
+  4000bc:	afc00000 	sw	zero,0(s8)
+  4000c0:	1000000d 	b	4000f8 <main+0x48>
+  4000c4:	00000000 	nop
+  4000c8:	8f838004 	lw	v1,-32764(gp)
+  4000cc:	3c020041 	lui	v0,0x41
+  4000d0:	8fc40000 	lw	a0,0(s8)
+  4000d4:	00000000 	nop
+  4000d8:	00042080 	sll	a0,a0,0x2
+  4000dc:	24420198 	addiu	v0,v0,408
+  4000e0:	00821021 	addu	v0,a0,v0
+  4000e4:	ac430000 	sw	v1,0(v0)
+  4000e8:	8fc20000 	lw	v0,0(s8)
+  4000ec:	00000000 	nop
+  4000f0:	24420001 	addiu	v0,v0,1
+  4000f4:	afc20000 	sw	v0,0(s8)
+  4000f8:	8fc20000 	lw	v0,0(s8)
+  4000fc:	00000000 	nop
+  400100:	28420064 	slti	v0,v0,100
+  400104:	1440fff0 	bnez	v0,4000c8 <main+0x18>
+  400108:	00000000 	nop
+  40010c:	afc00000 	sw	zero,0(s8)
+  400110:	10000010 	b	400154 <main+0xa4>
+  400114:	00000000 	nop
+  400118:	3c020041 	lui	v0,0x41
+  40011c:	8fc30000 	lw	v1,0(s8)
+  400120:	00000000 	nop
+  400124:	00031880 	sll	v1,v1,0x2
+  400128:	24420198 	addiu	v0,v0,408
+  40012c:	00621021 	addu	v0,v1,v0
+  400130:	8c430000 	lw	v1,0(v0)
+  400134:	8f828004 	lw	v0,-32764(gp)
+  400138:	00000000 	nop
+  40013c:	00621021 	addu	v0,v1,v0
+  400140:	af828004 	sw	v0,-32764(gp)
+  400144:	8fc20000 	lw	v0,0(s8)
+  400148:	00000000 	nop
+  40014c:	24420001 	addiu	v0,v0,1
+  400150:	afc20000 	sw	v0,0(s8)
+  400154:	8fc20000 	lw	v0,0(s8)
+  400158:	00000000 	nop
+  40015c:	28420064 	slti	v0,v0,100
+  400160:	1440ffed 	bnez	v0,400118 <main+0x68>
+  400164:	00000000 	nop
+  400168:	8f828004 	lw	v0,-32764(gp)
+  40016c:	00000000 	nop
+  400170:	00402025 	move	a0,v0
+  400174:	24020001 	li	v0,1
+  400178:	0000000c 	syscall
+  40017c:	8f828004 	lw	v0,-32764(gp)
+  400180:	03c0e825 	move	sp,s8
+  400184:	8fbe000c 	lw	s8,12(sp)
+  400188:	27bd0010 	addiu	sp,sp,16
+  40018c:	03e00008 	jr	ra
+  400190:	00000000 	nop
+
+Disassembly of section .sdata:
+
+00410194 <b>:
+  410194:	0000000a 	0xa
+
+Disassembly of section .bss:
+
+00410198 <data>:
+	...
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	3a434347 	xori	v1,s2,0x4347
+   4:	72632820 	0x72632820
+   8:	7473736f 	jalx	1cdcdbc <_gp+0x18c4c2c>
+   c:	2d6c6f6f 	sltiu	t4,t3,28527
+  10:	3120474e 	andi	zero,t1,0x474e
+  14:	2e34322e 	sltiu	s4,s1,12846
+  18:	38202930 	xori	zero,at,0x2930
+  1c:	302e332e 	andi	t6,at,0x332e
+	...
+
+Disassembly of section .pdr:
+
+00000000 <.pdr>:
+   0:	004000b0 	0x4000b0
+   4:	40000000 	mfc0	zero,c0_index
+   8:	fffffffc 	0xfffffffc
+	...
+  14:	00000010 	mfhi	zero
+  18:	0000001e 	0x1e
+  1c:	0000001f 	0x1f
+
+Disassembly of section .gnu.attributes:
+
+00000000 <.gnu.attributes>:
+   0:	00000f41 	0xf41
+   4:	756e6700 	jalx	5b99c00 <_gp+0x5781a70>
+   8:	00070100 	sll	zero,a3,0x4
+   c:	03040000 	0x3040000

@@ -23,13 +23,9 @@ using namespace SST::MemHierarchy;
 
 /* Constructor */
 
-MemLink::MemLink(ComponentId_t id, Params &params) : MemLinkBase(id, params) {
-    build(params);
-}
-
-void MemLink::build(Params &params) {
+MemLink::MemLink(ComponentId_t id, Params &params, std::string tb) : MemLinkBase(id, params, tb) {
     // Configure link
-    std::string latency = params.find<std::string>("latency", "50ps");
+    std::string latency = params.find<std::string>("latency", "50ps"); // TODO use timebase as default instead?
     std::string port = params.find<std::string>("port", "port");
 
     link = configureLink(port, latency, new Event::Handler<MemLink>(this, &MemLink::recvNotify));

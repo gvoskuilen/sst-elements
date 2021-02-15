@@ -51,8 +51,7 @@ public:
 /* Begin class definition */
 
     /* Constructor */
-    OpalMemNIC(Component * comp, Params &params);
-    OpalMemNIC(ComponentId_t id, Params &params);
+    OpalMemNIC(ComponentId_t id, Params &params, std::string tb);
 
     /* Destructor */
     virtual ~OpalMemNIC() { }

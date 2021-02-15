@@ -1,0 +1,3 @@
+
+An implementation of a MIPS 4kc processor core. Large portions based on 
+the SPIM S20 MIPS Cycle Level simulator (SPIM-CL).

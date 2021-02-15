@@ -75,6 +75,13 @@ MemCacheController::MemCacheController(ComponentId_t id, Params &params) : Compo
     // Output for warnings
     out.init("", params.find<int>("verbose", 1), 0, Output::STDOUT);
 
+    // Error check clock frequency
+    std::string clockfreq = params.find<std::string>("clock");
+    UnitAlgebra clock_ua(clockfreq);
+    if (!(clock_ua.hasUnits("Hz") || clock_ua.hasUnits("s")) || clock_ua.getRoundedValue() <= 0) {
+        out.fatal(CALL_INFO, -1, "%s, Error - Invalid param: clock. Must have units of Hz or s and be > 0. (SI prefixes ok). You specified '%s'\n", getName().c_str(), clockfreq.c_str());
+    }
+
     /* MemCacheController only supports new way of loading backend:
      *  -> Fill backend slot with backend and memcontroller loads the compatible convertor */
     MemBackend * memory = loadUserSubComponent<MemBackend>("backend");
@@ -119,7 +126,7 @@ MemCacheController::MemCacheController(ComponentId_t id, Params &params) : Compo
 
     bool found;
 
-    link_ = loadUserSubComponent<MemLinkBase>("cpulink");
+    link_ = loadUserSubComponent<MemLinkBase>("cpulink", ComponentInfo::SHARE_NONE, clockfreq);
 
     if (!link_) {
         out.fatal(CALL_INFO,-1,"%s, Error: No link handler loaded into 'cpulink' subcomponent slot.\n", getName().c_str());
@@ -177,11 +184,6 @@ MemCacheController::MemCacheController(ComponentId_t id, Params &params) : Compo
     }
 
     /* Clock Handler */
-    std::string clockfreq = params.find<std::string>("clock");
-    UnitAlgebra clock_ua(clockfreq);
-    if (!(clock_ua.hasUnits("Hz") || clock_ua.hasUnits("s")) || clock_ua.getRoundedValue() <= 0) {
-        out.fatal(CALL_INFO, -1, "%s, Error - Invalid param: clock. Must have units of Hz or s and be > 0. (SI prefixes ok). You specified '%s'\n", getName().c_str(), clockfreq.c_str());
-    }
     clockHandler_ = new Clock::Handler<MemCacheController>(this, &MemCacheController::clock);
     clockTimeBase_ = registerClock(clockfreq, clockHandler_);
     clockOn_ = true;

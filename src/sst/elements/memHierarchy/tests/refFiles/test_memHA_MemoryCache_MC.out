@@ -3275,7 +3275,7 @@ Model complete
  dc_0.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_0.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_0.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_0.MSHR_occupancy : Accumulator : Sum.u64 = 76176; SumSQ.u64 = 456012; Count.u64 = 16710; Min.u64 = 0; Max.u64 = 15; 
+ dc_0.MSHR_occupancy : Accumulator : Sum.u64 = 76176; SumSQ.u64 = 456012; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  hbm_1.requests_received_GetS : Accumulator : Sum.u64 = 2250; SumSQ.u64 = 2250; Count.u64 = 2250; Min.u64 = 1; Max.u64 = 1; 
  hbm_1.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  hbm_1.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -3959,7 +3959,7 @@ Model complete
  dc_1.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_1.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_1.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_1.MSHR_occupancy : Accumulator : Sum.u64 = 80964; SumSQ.u64 = 515752; Count.u64 = 16544; Min.u64 = 0; Max.u64 = 14; 
+ dc_1.MSHR_occupancy : Accumulator : Sum.u64 = 80964; SumSQ.u64 = 515752; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  l2cache_2:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_2:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_2:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1581; SumSQ.u64 = 5857; Count.u64 = 501; Min.u64 = 0; Max.u64 = 6; 
@@ -4616,7 +4616,7 @@ Model complete
  dc_2.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_2.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_2.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_2.MSHR_occupancy : Accumulator : Sum.u64 = 84063; SumSQ.u64 = 542847; Count.u64 = 16605; Min.u64 = 0; Max.u64 = 16; 
+ dc_2.MSHR_occupancy : Accumulator : Sum.u64 = 84063; SumSQ.u64 = 542847; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 16; 
  l2cache_3:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_3:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_3:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1577; SumSQ.u64 = 5825; Count.u64 = 500; Min.u64 = 0; Max.u64 = 6; 
@@ -5273,7 +5273,7 @@ Model complete
  dc_3.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_3.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_3.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_3.MSHR_occupancy : Accumulator : Sum.u64 = 83158; SumSQ.u64 = 571518; Count.u64 = 16664; Min.u64 = 0; Max.u64 = 18; 
+ dc_3.MSHR_occupancy : Accumulator : Sum.u64 = 83158; SumSQ.u64 = 571518; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 18; 
  hbm_2.requests_received_GetS : Accumulator : Sum.u64 = 2250; SumSQ.u64 = 2250; Count.u64 = 2250; Min.u64 = 1; Max.u64 = 1; 
  hbm_2.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  hbm_2.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -5957,7 +5957,7 @@ Model complete
  dc_4.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_4.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_4.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_4.MSHR_occupancy : Accumulator : Sum.u64 = 82908; SumSQ.u64 = 537926; Count.u64 = 16731; Min.u64 = 0; Max.u64 = 14; 
+ dc_4.MSHR_occupancy : Accumulator : Sum.u64 = 82908; SumSQ.u64 = 537926; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  hbm_3.requests_received_GetS : Accumulator : Sum.u64 = 2250; SumSQ.u64 = 2250; Count.u64 = 2250; Min.u64 = 1; Max.u64 = 1; 
  hbm_3.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  hbm_3.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -6641,7 +6641,7 @@ Model complete
  dc_5.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_5.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_5.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_5.MSHR_occupancy : Accumulator : Sum.u64 = 84234; SumSQ.u64 = 546966; Count.u64 = 16801; Min.u64 = 0; Max.u64 = 14; 
+ dc_5.MSHR_occupancy : Accumulator : Sum.u64 = 84234; SumSQ.u64 = 546966; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  ddr_0.requests_received_GetS : Accumulator : Sum.u64 = 3000; SumSQ.u64 = 3000; Count.u64 = 3000; Min.u64 = 1; Max.u64 = 1; 
  ddr_0.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  ddr_0.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -7321,7 +7321,7 @@ Model complete
  dc_6.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_6.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_6.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_6.MSHR_occupancy : Accumulator : Sum.u64 = 84531; SumSQ.u64 = 549283; Count.u64 = 16883; Min.u64 = 0; Max.u64 = 15; 
+ dc_6.MSHR_occupancy : Accumulator : Sum.u64 = 84531; SumSQ.u64 = 549283; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  l2cache_7:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_7:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_7:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1491; SumSQ.u64 = 5261; Count.u64 = 503; Min.u64 = 0; Max.u64 = 7; 
@@ -7978,7 +7978,7 @@ Model complete
  dc_7.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_7.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_7.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_7.MSHR_occupancy : Accumulator : Sum.u64 = 79744; SumSQ.u64 = 502506; Count.u64 = 16945; Min.u64 = 0; Max.u64 = 13; 
+ dc_7.MSHR_occupancy : Accumulator : Sum.u64 = 79744; SumSQ.u64 = 502506; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 13; 
  l2cache_8:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_8:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_8:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1407; SumSQ.u64 = 4475; Count.u64 = 513; Min.u64 = 0; Max.u64 = 5; 
@@ -8635,7 +8635,7 @@ Model complete
  dc_8.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_8.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_8.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_8.MSHR_occupancy : Accumulator : Sum.u64 = 81870; SumSQ.u64 = 572148; Count.u64 = 16994; Min.u64 = 0; Max.u64 = 22; 
+ dc_8.MSHR_occupancy : Accumulator : Sum.u64 = 81870; SumSQ.u64 = 572148; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 22; 
  l2cache_9:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_9:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_9:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1383; SumSQ.u64 = 4477; Count.u64 = 503; Min.u64 = 0; Max.u64 = 6; 
@@ -9292,7 +9292,7 @@ Model complete
  dc_9.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_9.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_9.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_9.MSHR_occupancy : Accumulator : Sum.u64 = 84872; SumSQ.u64 = 559228; Count.u64 = 17061; Min.u64 = 0; Max.u64 = 14; 
+ dc_9.MSHR_occupancy : Accumulator : Sum.u64 = 84872; SumSQ.u64 = 559228; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  l2cache_10:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_10:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_10:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1508; SumSQ.u64 = 5294; Count.u64 = 506; Min.u64 = 0; Max.u64 = 6; 
@@ -9949,7 +9949,7 @@ Model complete
  dc_10.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_10.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_10.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_10.MSHR_occupancy : Accumulator : Sum.u64 = 82235; SumSQ.u64 = 545651; Count.u64 = 17110; Min.u64 = 0; Max.u64 = 15; 
+ dc_10.MSHR_occupancy : Accumulator : Sum.u64 = 82235; SumSQ.u64 = 545651; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  ddr_1.requests_received_GetS : Accumulator : Sum.u64 = 3000; SumSQ.u64 = 3000; Count.u64 = 3000; Min.u64 = 1; Max.u64 = 1; 
  ddr_1.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  ddr_1.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -10629,7 +10629,7 @@ Model complete
  dc_11.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_11.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_11.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_11.MSHR_occupancy : Accumulator : Sum.u64 = 75891; SumSQ.u64 = 487977; Count.u64 = 17161; Min.u64 = 0; Max.u64 = 18; 
+ dc_11.MSHR_occupancy : Accumulator : Sum.u64 = 75891; SumSQ.u64 = 487977; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 18; 
  ddr_2.requests_received_GetS : Accumulator : Sum.u64 = 3000; SumSQ.u64 = 3000; Count.u64 = 3000; Min.u64 = 1; Max.u64 = 1; 
  ddr_2.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  ddr_2.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -11309,7 +11309,7 @@ Model complete
  dc_12.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_12.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_12.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_12.MSHR_occupancy : Accumulator : Sum.u64 = 77838; SumSQ.u64 = 503058; Count.u64 = 16842; Min.u64 = 0; Max.u64 = 14; 
+ dc_12.MSHR_occupancy : Accumulator : Sum.u64 = 77838; SumSQ.u64 = 503058; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  l2cache_13:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_13:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_13:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1375; SumSQ.u64 = 4363; Count.u64 = 507; Min.u64 = 0; Max.u64 = 6; 
@@ -11966,7 +11966,7 @@ Model complete
  dc_13.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_13.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_13.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_13.MSHR_occupancy : Accumulator : Sum.u64 = 82521; SumSQ.u64 = 543085; Count.u64 = 16911; Min.u64 = 0; Max.u64 = 14; 
+ dc_13.MSHR_occupancy : Accumulator : Sum.u64 = 82521; SumSQ.u64 = 543085; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  l2cache_14:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_14:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_14:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1274; SumSQ.u64 = 3720; Count.u64 = 506; Min.u64 = 0; Max.u64 = 6; 
@@ -12623,7 +12623,7 @@ Model complete
  dc_14.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_14.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_14.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_14.MSHR_occupancy : Accumulator : Sum.u64 = 84907; SumSQ.u64 = 573561; Count.u64 = 16646; Min.u64 = 0; Max.u64 = 15; 
+ dc_14.MSHR_occupancy : Accumulator : Sum.u64 = 84907; SumSQ.u64 = 573561; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  l2cache_15:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_15:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_15:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1275; SumSQ.u64 = 3711; Count.u64 = 501; Min.u64 = 0; Max.u64 = 5; 
@@ -13280,7 +13280,7 @@ Model complete
  dc_15.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_15.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_15.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_15.MSHR_occupancy : Accumulator : Sum.u64 = 79785; SumSQ.u64 = 503941; Count.u64 = 16700; Min.u64 = 0; Max.u64 = 13; 
+ dc_15.MSHR_occupancy : Accumulator : Sum.u64 = 79785; SumSQ.u64 = 503941; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 13; 
  l2cache_16:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_16:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_16:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 1398; SumSQ.u64 = 4556; Count.u64 = 509; Min.u64 = 0; Max.u64 = 7; 
@@ -13937,7 +13937,7 @@ Model complete
  dc_16.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_16.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_16.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_16.MSHR_occupancy : Accumulator : Sum.u64 = 82338; SumSQ.u64 = 538142; Count.u64 = 16774; Min.u64 = 0; Max.u64 = 14; 
+ dc_16.MSHR_occupancy : Accumulator : Sum.u64 = 82338; SumSQ.u64 = 538142; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  ddr_3.requests_received_GetS : Accumulator : Sum.u64 = 3000; SumSQ.u64 = 3000; Count.u64 = 3000; Min.u64 = 1; Max.u64 = 1; 
  ddr_3.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  ddr_3.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -14617,7 +14617,7 @@ Model complete
  dc_17.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_17.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_17.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_17.MSHR_occupancy : Accumulator : Sum.u64 = 83149; SumSQ.u64 = 543983; Count.u64 = 16844; Min.u64 = 0; Max.u64 = 14; 
+ dc_17.MSHR_occupancy : Accumulator : Sum.u64 = 83149; SumSQ.u64 = 543983; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  ddr_4.requests_received_GetS : Accumulator : Sum.u64 = 3000; SumSQ.u64 = 3000; Count.u64 = 3000; Min.u64 = 1; Max.u64 = 1; 
  ddr_4.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  ddr_4.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -15297,7 +15297,7 @@ Model complete
  dc_18.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_18.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_18.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_18.MSHR_occupancy : Accumulator : Sum.u64 = 86732; SumSQ.u64 = 588390; Count.u64 = 16895; Min.u64 = 0; Max.u64 = 15; 
+ dc_18.MSHR_occupancy : Accumulator : Sum.u64 = 86732; SumSQ.u64 = 588390; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  l2cache_19:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_19:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_19:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 79; SumSQ.u64 = 245; Count.u64 = 28; Min.u64 = 1; Max.u64 = 5; 
@@ -15954,7 +15954,7 @@ Model complete
  dc_19.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_19.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_19.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_19.MSHR_occupancy : Accumulator : Sum.u64 = 84319; SumSQ.u64 = 571489; Count.u64 = 16944; Min.u64 = 0; Max.u64 = 18; 
+ dc_19.MSHR_occupancy : Accumulator : Sum.u64 = 84319; SumSQ.u64 = 571489; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 18; 
  l2cache_20:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_20:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_20:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 39; SumSQ.u64 = 115; Count.u64 = 16; Min.u64 = 1; Max.u64 = 5; 
@@ -16611,7 +16611,7 @@ Model complete
  dc_20.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_20.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_20.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_20.MSHR_occupancy : Accumulator : Sum.u64 = 80246; SumSQ.u64 = 505824; Count.u64 = 16597; Min.u64 = 0; Max.u64 = 15; 
+ dc_20.MSHR_occupancy : Accumulator : Sum.u64 = 80246; SumSQ.u64 = 505824; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  l2cache_21:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_21:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_21:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 37; SumSQ.u64 = 111; Count.u64 = 16; Min.u64 = 0; Max.u64 = 4; 
@@ -17268,7 +17268,7 @@ Model complete
  dc_21.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_21.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_21.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_21.MSHR_occupancy : Accumulator : Sum.u64 = 86356; SumSQ.u64 = 580572; Count.u64 = 16673; Min.u64 = 0; Max.u64 = 14; 
+ dc_21.MSHR_occupancy : Accumulator : Sum.u64 = 86356; SumSQ.u64 = 580572; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  l2cache_22:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_22:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_22:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 38; SumSQ.u64 = 142; Count.u64 = 12; Min.u64 = 1; Max.u64 = 5; 
@@ -17925,7 +17925,7 @@ Model complete
  dc_22.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_22.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_22.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_22.MSHR_occupancy : Accumulator : Sum.u64 = 82013; SumSQ.u64 = 523351; Count.u64 = 16731; Min.u64 = 0; Max.u64 = 13; 
+ dc_22.MSHR_occupancy : Accumulator : Sum.u64 = 82013; SumSQ.u64 = 523351; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 13; 
  ddr_5.requests_received_GetS : Accumulator : Sum.u64 = 3000; SumSQ.u64 = 3000; Count.u64 = 3000; Min.u64 = 1; Max.u64 = 1; 
  ddr_5.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  ddr_5.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -18605,7 +18605,7 @@ Model complete
  dc_23.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_23.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_23.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_23.MSHR_occupancy : Accumulator : Sum.u64 = 76596; SumSQ.u64 = 464094; Count.u64 = 16798; Min.u64 = 0; Max.u64 = 14; 
+ dc_23.MSHR_occupancy : Accumulator : Sum.u64 = 76596; SumSQ.u64 = 464094; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  l2cache_24:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_24:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_24:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 32; SumSQ.u64 = 104; Count.u64 = 11; Min.u64 = 1; Max.u64 = 5; 
@@ -19262,7 +19262,7 @@ Model complete
  dc_24.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_24.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_24.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_24.MSHR_occupancy : Accumulator : Sum.u64 = 78679; SumSQ.u64 = 493069; Count.u64 = 16845; Min.u64 = 0; Max.u64 = 14; 
+ dc_24.MSHR_occupancy : Accumulator : Sum.u64 = 78679; SumSQ.u64 = 493069; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  l2cache_25:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_25:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_25:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 57; SumSQ.u64 = 211; Count.u64 = 17; Min.u64 = 1; Max.u64 = 5; 
@@ -19919,7 +19919,7 @@ Model complete
  dc_25.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_25.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_25.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_25.MSHR_occupancy : Accumulator : Sum.u64 = 85248; SumSQ.u64 = 571742; Count.u64 = 16908; Min.u64 = 0; Max.u64 = 15; 
+ dc_25.MSHR_occupancy : Accumulator : Sum.u64 = 85248; SumSQ.u64 = 571742; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  l2cache_26:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_26:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_26:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 36; SumSQ.u64 = 108; Count.u64 = 14; Min.u64 = 1; Max.u64 = 5; 
@@ -20576,7 +20576,7 @@ Model complete
  dc_26.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_26.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_26.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_26.MSHR_occupancy : Accumulator : Sum.u64 = 85408; SumSQ.u64 = 560000; Count.u64 = 16970; Min.u64 = 0; Max.u64 = 13; 
+ dc_26.MSHR_occupancy : Accumulator : Sum.u64 = 85408; SumSQ.u64 = 560000; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 13; 
  l2cache_27:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_27:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_27:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 32; SumSQ.u64 = 102; Count.u64 = 13; Min.u64 = 0; Max.u64 = 5; 
@@ -21233,7 +21233,7 @@ Model complete
  dc_27.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_27.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_27.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_27.MSHR_occupancy : Accumulator : Sum.u64 = 83389; SumSQ.u64 = 557969; Count.u64 = 17016; Min.u64 = 0; Max.u64 = 16; 
+ dc_27.MSHR_occupancy : Accumulator : Sum.u64 = 83389; SumSQ.u64 = 557969; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 16; 
  l2cache_28:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_28:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_28:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 37; SumSQ.u64 = 127; Count.u64 = 13; Min.u64 = 1; Max.u64 = 5; 
@@ -21890,7 +21890,7 @@ Model complete
  dc_28.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_28.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_28.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_28.MSHR_occupancy : Accumulator : Sum.u64 = 83122; SumSQ.u64 = 542740; Count.u64 = 17071; Min.u64 = 0; Max.u64 = 17; 
+ dc_28.MSHR_occupancy : Accumulator : Sum.u64 = 83122; SumSQ.u64 = 542740; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 17; 
  l2cache_29:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_29:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_29:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 59; SumSQ.u64 = 223; Count.u64 = 18; Min.u64 = 1; Max.u64 = 6; 
@@ -22547,7 +22547,7 @@ Model complete
  dc_29.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_29.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_29.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_29.MSHR_occupancy : Accumulator : Sum.u64 = 88239; SumSQ.u64 = 611531; Count.u64 = 17129; Min.u64 = 0; Max.u64 = 15; 
+ dc_29.MSHR_occupancy : Accumulator : Sum.u64 = 88239; SumSQ.u64 = 611531; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  hbm_4.requests_received_GetS : Accumulator : Sum.u64 = 2250; SumSQ.u64 = 2250; Count.u64 = 2250; Min.u64 = 1; Max.u64 = 1; 
  hbm_4.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  hbm_4.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -23231,7 +23231,7 @@ Model complete
  dc_30.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_30.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_30.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_30.MSHR_occupancy : Accumulator : Sum.u64 = 88787; SumSQ.u64 = 616291; Count.u64 = 17215; Min.u64 = 0; Max.u64 = 15; 
+ dc_30.MSHR_occupancy : Accumulator : Sum.u64 = 88787; SumSQ.u64 = 616291; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  hbm_5.requests_received_GetS : Accumulator : Sum.u64 = 2250; SumSQ.u64 = 2250; Count.u64 = 2250; Min.u64 = 1; Max.u64 = 1; 
  hbm_5.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  hbm_5.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -23915,7 +23915,7 @@ Model complete
  dc_31.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_31.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_31.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_31.MSHR_occupancy : Accumulator : Sum.u64 = 83781; SumSQ.u64 = 544173; Count.u64 = 16805; Min.u64 = 0; Max.u64 = 15; 
+ dc_31.MSHR_occupancy : Accumulator : Sum.u64 = 83781; SumSQ.u64 = 544173; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 15; 
  l2cache_32:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_32:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_32:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 21; SumSQ.u64 = 81; Count.u64 = 7; Min.u64 = 1; Max.u64 = 5; 
@@ -24572,7 +24572,7 @@ Model complete
  dc_32.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_32.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_32.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_32.MSHR_occupancy : Accumulator : Sum.u64 = 83695; SumSQ.u64 = 549303; Count.u64 = 16851; Min.u64 = 0; Max.u64 = 14; 
+ dc_32.MSHR_occupancy : Accumulator : Sum.u64 = 83695; SumSQ.u64 = 549303; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  l2cache_33:memlink:req.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_33:memlink:ack.packet_latency : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  l2cache_33:memlink:fwd.packet_latency : Accumulator : Sum.u64 = 4; SumSQ.u64 = 8; Count.u64 = 2; Min.u64 = 2; Max.u64 = 2; 
@@ -25229,7 +25229,7 @@ Model complete
  dc_33.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_33.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_33.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_33.MSHR_occupancy : Accumulator : Sum.u64 = 87787; SumSQ.u64 = 582477; Count.u64 = 16919; Min.u64 = 0; Max.u64 = 14; 
+ dc_33.MSHR_occupancy : Accumulator : Sum.u64 = 87787; SumSQ.u64 = 582477; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 14; 
  hbm_6.requests_received_GetS : Accumulator : Sum.u64 = 2250; SumSQ.u64 = 2250; Count.u64 = 2250; Min.u64 = 1; Max.u64 = 1; 
  hbm_6.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  hbm_6.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -25913,7 +25913,7 @@ Model complete
  dc_34.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_34.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_34.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_34.MSHR_occupancy : Accumulator : Sum.u64 = 83948; SumSQ.u64 = 559592; Count.u64 = 16975; Min.u64 = 0; Max.u64 = 16; 
+ dc_34.MSHR_occupancy : Accumulator : Sum.u64 = 83948; SumSQ.u64 = 559592; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 16; 
  hbm_7.requests_received_GetS : Accumulator : Sum.u64 = 2250; SumSQ.u64 = 2250; Count.u64 = 2250; Min.u64 = 1; Max.u64 = 1; 
  hbm_7.requests_received_GetSX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  hbm_7.requests_received_GetX : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -26597,5 +26597,5 @@ Model complete
  dc_35.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_35.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  dc_35.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- dc_35.MSHR_occupancy : Accumulator : Sum.u64 = 78751; SumSQ.u64 = 487449; Count.u64 = 16958; Min.u64 = 0; Max.u64 = 13; 
+ dc_35.MSHR_occupancy : Accumulator : Sum.u64 = 78751; SumSQ.u64 = 487449; Count.u64 = 17235; Min.u64 = 0; Max.u64 = 13; 
 Simulation is complete, simulated time: 10.772 us

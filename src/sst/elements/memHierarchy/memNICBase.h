@@ -43,11 +43,46 @@ class MemNICBase : public MemLinkBase {
         { "sources",                     "(comma-separated list of ints) List of group IDs that serve as sources for this component. If not specified, defaults to 'group - 1'.", "group-1"},\
         { "destinations",                "(comma-separated list of ints) List of group IDs that serve as destinations for this component. If not specified, defaults to 'group + 1'.", "group+1"}
 
-        SST_ELI_REGISTER_SUBCOMPONENT_DERIVED_API(SST::MemHierarchy::MemNICBase, SST::MemHierarchy::MemLinkBase)
+        SST_ELI_REGISTER_SUBCOMPONENT_DERIVED_API(SST::MemHierarchy::MemNICBase, SST::MemHierarchy::MemLinkBase, std::string)
 
         /* Constructor */
-        MemNICBase(ComponentId_t id, Params &params) : MemLinkBase(id, params) {
-            build(params);
+        MemNICBase(ComponentId_t id, Params &params, std::string tb) : MemLinkBase(id, params, tb) {
+            // Get source/destination parameters
+            // Each NIC has a group ID and talks to those with IDs in sources and destinations
+            // If no source/destination provided, source = group ID - 1, destination = group ID + 1
+            bool found;
+            info.id = params.find<uint32_t>("group", 0, found);
+            if (!found) {
+                dbg.fatal(CALL_INFO, -1, "Param not specified(%s): group - group ID (or hierarchy level) for this NIC's component. Example: L2s in group 1, directories in group 2, memories (on network) in group 3.\n",
+                        getName().c_str());
+            }
+
+            std::stringstream sources, destinations;
+            sources.str(params.find<std::string>("sources", ""));
+            destinations.str(params.find<std::string>("destinations", ""));
+
+            uint32_t cid;
+            while (sources >> cid) {
+                sourceIDs.insert(cid);
+                while (sources.peek() == ',' || sources.peek() == ' ')
+                    sources.ignore();
+            }
+
+            if (sourceIDs.empty())
+                sourceIDs.insert(info.id - 1);
+
+            while (destinations >> cid) {
+                destIDs.insert(cid);
+                while (destinations.peek() == ',' || destinations.peek() == ' ')
+                    destinations.ignore();
+            }
+            if (destIDs.empty())
+                destIDs.insert(info.id + 1);
+
+            initMsgSent = false;
+
+            dbg.debug(_L10_, "%s memNICBase info is: Name: %s, group: %" PRIu32 "\n",
+                    getName().c_str(), info.name.c_str(), info.id);
         }
 
         /* Destructor */
@@ -277,8 +312,8 @@ class MemNICBase : public MemLinkBase {
             return size.getRoundedValue();
         }
 
-        // Drain a send queue
-        void drainQueue(std::queue<SST::Interfaces::SimpleNetwork::Request*>* queue, SST::Interfaces::SimpleNetwork* linkcontrol) {
+        // Drain a send queue; return whether queue was successfully drained
+        bool drainQueue(std::queue<SST::Interfaces::SimpleNetwork::Request*>* queue, SST::Interfaces::SimpleNetwork* linkcontrol) {
             while (!(queue->empty())) {
                 SST::Interfaces::SimpleNetwork::Request* head = queue->front();
 #ifdef __SST_DEBUG_OUTPUT__
@@ -290,16 +325,20 @@ class MemNICBase : public MemLinkBase {
                 if (linkcontrol->spaceToSend(0, head->size_in_bits) && linkcontrol->send(head, 0)) {
 #ifdef __SST_DEBUG_OUTPUT__
                     if (!debugEvStr.empty() && doDebug) {
-                        dbg.debug(_L9_, "%s (memNICBase), Sending message %s to dst addr %" PRIu64 "\n",
-                                getName().c_str(), debugEvStr.c_str(), dst);
+                        dbg.debug(_L9_, "E: %-20" PRIu64 "                      %-20s Event:Send    %" PRIu64 ": (%s)\n",
+                            Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), dst, debugEvStr.c_str());
+                        //dbg.debug(_L9_, "%s (memNICBase), Sending message %s to dst addr %" PRIu64 "\n",
+                        //        getName().c_str(), debugEvStr.c_str(), dst);
                     }
 #endif
                     queue->pop();
                 } else {
-                    break;
+                    return false;
                 }
             }
+            return true;
         }
+
 
         MemRtrEvent* doRecv(SST::Interfaces::SimpleNetwork* linkcontrol) {
             SST::Interfaces::SimpleNetwork::Request* req = linkcontrol->recv(0);
@@ -343,44 +382,6 @@ class MemNICBase : public MemLinkBase {
 
     private:
 
-        void build(Params& params) {
-            // Get source/destination parameters
-            // Each NIC has a group ID and talks to those with IDs in sources and destinations
-            // If no source/destination provided, source = group ID - 1, destination = group ID + 1
-            bool found;
-            info.id = params.find<uint32_t>("group", 0, found);
-            if (!found) {
-                dbg.fatal(CALL_INFO, -1, "Param not specified(%s): group - group ID (or hierarchy level) for this NIC's component. Example: L2s in group 1, directories in group 2, memories (on network) in group 3.\n",
-                        getName().c_str());
-            }
-
-            std::stringstream sources, destinations;
-            sources.str(params.find<std::string>("sources", ""));
-            destinations.str(params.find<std::string>("destinations", ""));
-
-            uint32_t id;
-            while (sources >> id) {
-                sourceIDs.insert(id);
-                while (sources.peek() == ',' || sources.peek() == ' ')
-                    sources.ignore();
-            }
-
-            if (sourceIDs.empty())
-                sourceIDs.insert(info.id - 1);
-
-            while (destinations >> id) {
-                destIDs.insert(id);
-                while (destinations.peek() == ',' || destinations.peek() == ' ')
-                    destinations.ignore();
-            }
-            if (destIDs.empty())
-                destIDs.insert(info.id + 1);
-
-            initMsgSent = false;
-
-            dbg.debug(_L10_, "%s memNICBase info is: Name: %s, group: %" PRIu32 "\n",
-                    getName().c_str(), info.name.c_str(), info.id);
-        }
 };
 
 } //namespace memHierarchy

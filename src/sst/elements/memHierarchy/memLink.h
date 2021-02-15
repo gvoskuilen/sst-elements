@@ -87,7 +87,7 @@ public:
     };
 
     /* Constructor */
-    MemLink(ComponentId_t id, Params &params);
+    MemLink(ComponentId_t id, Params &params, std::string timebase);
 
     /* Destructor */
     virtual ~MemLink() { }
@@ -123,7 +123,7 @@ protected:
     std::set<EndpointInfo> remotes;
 
 private:
-    void build(Params &params);
+
 };
 
 } //namespace memHierarchy

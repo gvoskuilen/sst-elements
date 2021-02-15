@@ -35,7 +35,7 @@ using namespace SST::Interfaces;
 
 /* Constructor */
 
-MemNICFour::MemNICFour(ComponentId_t id, Params &params) : MemNICBase(id, params) {
+MemNICFour::MemNICFour(ComponentId_t id, Params &params, std::string tb) : MemNICBase(id, params, tb) {
     build(params);
 }
 

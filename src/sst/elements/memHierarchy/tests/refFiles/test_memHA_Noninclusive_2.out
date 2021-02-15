@@ -3988,7 +3988,7 @@ TrivialCPU cpu6 Finished after 1500 issued reads, 1500 returned (126699 clocks)
  directory0.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  directory0.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  directory0.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- directory0.MSHR_occupancy : Accumulator : Sum.u64 = 554286; SumSQ.u64 = 4809144; Count.u64 = 77401; Min.u64 = 0; Max.u64 = 14; 
+ directory0.MSHR_occupancy : Accumulator : Sum.u64 = 554286; SumSQ.u64 = 4809144; Count.u64 = 77463; Min.u64 = 0; Max.u64 = 14; 
  memory0:backend.row_already_open : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  memory0:backend.no_row_open : Accumulator : Sum.u64 = 6603; SumSQ.u64 = 6603; Count.u64 = 6603; Min.u64 = 1; Max.u64 = 1; 
  memory0:backend.wrong_row_open : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
@@ -4058,7 +4058,7 @@ TrivialCPU cpu6 Finished after 1500 issued reads, 1500 returned (126699 clocks)
  directory1.eventSent_FlushLineResp : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  directory1.eventSent_read_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  directory1.eventSent_write_directory_entry : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
- directory1.MSHR_occupancy : Accumulator : Sum.u64 = 444015; SumSQ.u64 = 3432703; Count.u64 = 77451; Min.u64 = 0; Max.u64 = 14; 
+ directory1.MSHR_occupancy : Accumulator : Sum.u64 = 444015; SumSQ.u64 = 3432703; Count.u64 = 77463; Min.u64 = 0; Max.u64 = 14; 
  memory1:backend.row_already_open : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 
  memory1:backend.no_row_open : Accumulator : Sum.u64 = 6347; SumSQ.u64 = 6347; Count.u64 = 6347; Min.u64 = 1; Max.u64 = 1; 
  memory1:backend.wrong_row_open : Accumulator : Sum.u64 = 0; SumSQ.u64 = 0; Count.u64 = 0; Min.u64 = 0; Max.u64 = 0; 

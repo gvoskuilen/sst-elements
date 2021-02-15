@@ -1,0 +1,11 @@
+# test fault file
+# test 1 2 3
+#test
+#test d
+ALU Cycle 32 0x00000001
+# At the 4th time we use the MDU, flip all bits of the output
+MDU Cycle 220 0xf0000000
+MDU Event 4   0x0fffffff
+ WB Cycle 0x137 0x00000011
+ WB Cycle 0x201 0x00000011
+ WB Cycle 0x300 0x00000011

@@ -191,8 +191,6 @@ private:
     MemLinkBase*    memLink;
     MemLinkBase*    cpuLink;
     string          memoryName; // if connected to mem via network, this should be the name of the memory we own - param is memory_name
-    bool clockMemLink;
-    bool clockCpuLink;
 
     bool isRequestAddressValid(Addr addr);
 

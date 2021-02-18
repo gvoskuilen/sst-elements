@@ -158,6 +158,8 @@ l3NIC.addParams({
     "input_buffer_size" : "2KiB",
     "output_buffer_size" : "2KiB",
     "group" : 1,
+    "debug" : 0,
+    "debug_level" : 10
 })
 
 comp_chiprtr = sst.Component("chiprtr", "merlin.hr_router")
@@ -189,11 +191,15 @@ dirNIC.addParams({
     "input_buffer_size" : "2KiB",
     "output_buffer_size" : "2KiB",
     "group" : 2,
+    "debug" : 0,
+    "debug_level" : 10
 })
 memctrl = sst.Component("memory", "memHierarchy.MemController")
 memctrl.addParams({
     "clock" : "500MHz",
     "backing" : "none",
+    "addr_range_start" : 0,
+    "addr_range_end" : 512*1024*1024 - 1,
     "debug" : DEBUG_MEM,
     "debug_level" : DEBUG_LEVEL
 })

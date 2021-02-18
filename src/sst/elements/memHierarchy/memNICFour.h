@@ -88,9 +88,7 @@ public:
 
     enum NetType { REQ, ACK, FWD, DATA };
     /* Constructor */
-    MemNICFour(ComponentId_t id, Params &params, std::string timebase);
-private:
-    void build(Params& params);
+    MemNICFour(ComponentId_t id, Params &params, std::string tb);
 public:
     /* Destructor */
     ~MemNICFour() { }
@@ -146,6 +144,11 @@ public:
     void printStatus(Output& out);
 
 private:
+    
+    bool clockTick(Cycle_t cycle);
+    SST::Clock::Handler<MemNICFour>* clockHandler;
+    TimeConverter* clockTimeBase;
+    bool clockOn;
 
     void recvNotify(MemNICFour::OrderedMemRtrEvent* mre);
     MemNICFour::OrderedMemRtrEvent* processRecv(SST::Interfaces::SimpleNetwork::Request* req);

@@ -93,13 +93,6 @@ bool Cache::clockTick(Cycle_t time) {
     // Drain any outgoing messages
     bool idle = coherenceMgr_->sendOutgoingEvents();
 
-    if (clockUpLink_) {
-    //    idle &= linkUp_->clock();
-    }
-    if (clockDownLink_) {
-    //    idle &= linkDown_->clock();
-    }
-
     // MSHR occupancy
     statMSHROccupancy->addData(mshr_->getSize());
 

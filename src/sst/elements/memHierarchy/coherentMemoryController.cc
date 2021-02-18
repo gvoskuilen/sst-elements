@@ -121,12 +121,9 @@ bool CoherentMemController::clock(Cycle_t cycle) {
     }
 
     /* Unclock if nothing is in clocked queues anywhere (link, backend, here) */
-    bool unclockLink = true;
-    if (clockLink_)
-        unclockLink = link_->clock();   /* OK to unclock link? */
     bool unclockBack = memBackendConvertor_->clock(cycle); /* OK to unclock backend? */
 
-    if (unclockLink && unclockBack && msgQueue_.empty()) {
+    if (unclockBack && msgQueue_.empty()) {
         memBackendConvertor_->turnClockOff();
         clockOn_ = false;
         return true;

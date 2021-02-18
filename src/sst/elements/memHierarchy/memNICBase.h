@@ -180,7 +180,7 @@ class MemNICBase : public MemLinkBase {
             return false;
         }
 
-        virtual bool isClocked() { return true; } // Tell parent to trigger our clock
+        virtual bool isClocked() { return false; }
 
         virtual std::set<EndpointInfo>* getSources() { return &sourceEndpointInfo; }
         virtual std::set<EndpointInfo>* getDests() { return &destEndpointInfo; }

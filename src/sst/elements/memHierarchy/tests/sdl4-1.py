@@ -72,6 +72,8 @@ memctrl.addParams({
       "debug" : DEBUG_MEM,
       "debug_level" : "10",
       "clock" : "1GHz",
+      "addr_range_start" : 0,
+      "addr_range_end" : 512*1024*1024 - 1
 })
 
 memory = memctrl.setSubComponent("backend", "memHierarchy.simpleMem")

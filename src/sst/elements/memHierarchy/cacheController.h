@@ -273,8 +273,6 @@ private:
     Clock::Handler<Cache>*  clockHandler_;
     TimeConverter*          defaultTimeBase_;
     bool                    clockIsOn_;     // Whether clock is on or off
-    bool                    clockUpLink_;   // Whether link actually needs clock() called or not
-    bool                    clockDownLink_; // Whether link actually needs clock() called or not
     SimTime_t               lastActiveClockCycle_;  // Cycle we turned the clock off at - for re-syncing stats
 
     /** Cache state ************************************************************/

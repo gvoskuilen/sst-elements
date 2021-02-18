@@ -36,10 +36,6 @@ using namespace SST::Interfaces;
 /* Constructor */
 
 MemNICFour::MemNICFour(ComponentId_t id, Params &params, std::string tb) : MemNICBase(id, params, tb) {
-    build(params);
-}
-
-void MemNICFour::build(Params& params) {
     bool found;
     std::array<std::string,4> pref = {"req", "ack", "fwd", "data"};
 
@@ -80,6 +76,11 @@ void MemNICFour::build(Params& params) {
     // TimeBase for statistics
     std::string timebase = params.find<std::string>("clock", "1GHz");
     setDefaultTimeBase(getTimeConverter(timebase));
+
+    // Try this:
+    clockHandler = new Clock::Handler<MemNICFour>(this, &MemNICFour::clockTick);
+    clockTimeBase = registerClock(tb, clockHandler);
+    clockOn = true;
 }
 
 void MemNICFour::init(unsigned int phase) {
@@ -114,8 +115,11 @@ void MemNICFour::setup() {
  * Called by parent on a clock
  * Returns whether anything sent this cycle
  */
-bool MemNICFour::clock() {
-    if (sendQueue[REQ].empty() && sendQueue[ACK].empty() && sendQueue[FWD].empty() && sendQueue[DATA].empty() && recvQueue.empty()) return true;
+bool MemNICFour::clockTick(Cycle_t cycle) {
+    if (sendQueue[REQ].empty() && sendQueue[ACK].empty() && sendQueue[FWD].empty() && sendQueue[DATA].empty() && recvQueue.empty()) {
+        clockOn = false;
+        return true;
+    }
 
     // Attempt send on the control network
     for (int i = 0; i < 4; i++)
@@ -127,6 +131,12 @@ bool MemNICFour::clock() {
     }
 
     return false;
+    
+   //return true;
+}
+
+bool MemNICFour::clock() {
+    return true;
 }
 
 /* Send event to memNIC */
@@ -156,10 +166,30 @@ void MemNICFour::send(MemEventBase *ev) {
         if (net == REQ) netstr = "req";
         else if (net == ACK) netstr = "ack";
         else if (net == FWD) netstr = "fwd";
-        dbg.debug(_L9_, "%s, memNIC adding to %s send queue: dst: %" PRIu64 ", bits: %zu, cmd: %s\n",
-                getName().c_str(), netstr.c_str(), req->dest, req->size_in_bits, CommandString[(int)ev->getCmd()]);
+        dbg.debug(_L9_, "L: %-20" PRIu64 "                      %-20s Enqueue       %s: %u (%s)\n", 
+                Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), netstr.c_str(), tag, ev->getBriefString().c_str());
+
+        //dbg.debug(_L9_, "%s, memNIC adding to %s send queue: dst: %" PRIu64 ", bits: %zu, cmd: %s\n",
+        //        getName().c_str(), netstr.c_str(), req->dest, req->size_in_bits, CommandString[(int)ev->getCmd()]);
     }
     sendQueue[net].push(req);
+
+    if (sendQueue[net].size() == 1) {
+        drainQueue(&sendQueue[net], link_control[net]);
+    }
+
+    if (!clockOn && !sendQueue[net].empty()) {
+        clockOn = true;
+        reregisterClock(clockTimeBase, clockHandler);
+    }
+
+/*    if (sendQueue[net].size() == 1) {
+        if (!drainQueue(&sendQueue[net], link_control[net])) {
+            bufferlink->send(1, nullptr); // Retry next cycle
+        }
+
+    }
+    */
 }
 
 
@@ -189,12 +219,16 @@ bool MemNICFour::recvNotifyData(int) {
 }
 
 void MemNICFour::doRecv(SimpleNetwork::Request * req, NetType net) {
+    dbg.debug(_L3_, "%s NIC doRecv on net type %d\n", getName().c_str(), (int)net);
     uint64_t src = req->src;
     OrderedMemRtrEvent * mre = processRecv(req); // Return the splitmemrtrevent if we have one
 
     if (mre != nullptr) {
-        dbg.debug(_L3_, "%s, memNIC received a message: <%" PRIu64 ", %u>\n",
-                getName().c_str(), src, mre->tag);
+        dbg.debug(_L9_, "L: %-20" PRIu64 "                      %-20s Receive       (%" PRIu64 ", %u)\n", 
+            Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), src, mre->tag);
+
+        //dbg.debug(_L3_, "%s, memNIC received a message: <%" PRIu64 ", %u>\n",
+        //        getName().c_str(), src, mre->tag);
 
         stat_oooDepthSrc->addData(orderBuffer[src].size());
         stat_oooDepth->addData(totalOOO);
@@ -223,6 +257,10 @@ void MemNICFour::doRecv(SimpleNetwork::Request * req, NetType net) {
             stat_oooEvent[net]->addData(1); // Count number of out of order events received
             orderBuffer[src][mre->tag] = std::make_pair(mre,getCurrentSimTime());
         }
+        if (!clockOn && !recvQueue.empty()) {
+            clockOn = true;
+            reregisterClock(clockTimeBase, clockHandler);
+        }
     }
 }
 
@@ -233,8 +271,8 @@ void MemNICFour::recvNotify(OrderedMemRtrEvent* mre) {
     if (!me) return;
 
     if (is_debug_event(me)) {
-        dbg.debug(_L3_, "%s, memNIC notify parent: src: %s. cmd: %s\n",
-                getName().c_str(), me->getSrc().c_str(), CommandString[(int)me->getCmd()]);
+        dbg.debug(_L9_, "L: %-20" PRIu64 "                      %-20s Callback      (%s)\n", 
+            Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), me->getBriefString().c_str());
     }
 
     // Call parent's handler

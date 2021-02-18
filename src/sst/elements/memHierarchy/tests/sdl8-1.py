@@ -113,6 +113,8 @@ memctrl.addParams({
       "debug_level" : 10,
       "clock" : "1GHz",
       "verbose" : 2,
+      "addr_range_start" : 0,
+      "addr_range_end" : 512*1024*1024 - 1
 })
 memToDir = memctrl.setSubComponent("cpulink", "memHierarchy.MemLink")
 memory = memctrl.setSubComponent("backend", "memHierarchy.simpleMem")

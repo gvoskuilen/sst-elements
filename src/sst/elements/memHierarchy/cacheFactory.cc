@@ -311,12 +311,6 @@ void Cache::configureLinks(Params &params) {
             linkUp_->setRegion(region_);
         }
 
-        clockUpLink_ = linkUp_->isClocked();
-        clockDownLink_ = linkDown_->isClocked();
-
-        //linkUp_->setName(getName());
-        //linkDown_->setName(getName());
-
         return;
     }
 
@@ -395,7 +389,6 @@ void Cache::configureLinks(Params &params) {
 
         linkUp_ = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemLink", "cpulink", 0, ComponentInfo::INSERT_STATS | ComponentInfo::SHARE_PORTS, cpulink, frequency);
         linkUp_->setRecvHandler(new Event::Handler<Cache>(this, &Cache::handleEvent));
-        clockUpLink_ = clockDownLink_ = false;
         /* Region given to each should be identical so doesn't matter which we pull but force them to be identical */
         region_ = linkDown_->getRegion();
         linkUp_->setRegion(region_);
@@ -428,8 +421,6 @@ void Cache::configureLinks(Params &params) {
         // Configure high link
         linkUp_ = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemLink", "cpulink", 0, ComponentInfo::INSERT_STATS | ComponentInfo::SHARE_PORTS, cpulink, frequency);
         linkUp_->setRecvHandler(new Event::Handler<Cache>(this, &Cache::handleEvent));
-        clockDownLink_ = true;
-        clockUpLink_ = false;
 
         region_ = linkDown_->getRegion();
         linkUp_->setRegion(region_);
@@ -461,8 +452,6 @@ void Cache::configureLinks(Params &params) {
         // Configure high link
         linkDown_ = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemLink", "memlink", 0, ComponentInfo::INSERT_STATS | ComponentInfo::SHARE_PORTS, memlink, frequency);
         linkDown_->setRecvHandler(new Event::Handler<Cache>(this, &Cache::handleEvent));
-        clockUpLink_ = true;
-        clockDownLink_ = false;
 
         /* Pull region off network link, really we should have the same region on both and it should be a cache property not link property... */
         region_ = linkUp_->getRegion();
@@ -496,8 +485,6 @@ void Cache::configureLinks(Params &params) {
         // Configure high link
         linkUp_ = loadAnonymousSubComponent<MemLinkBase>("memHierarchy.MemLink", "cpulink", 0, ComponentInfo::INSERT_STATS | ComponentInfo::SHARE_PORTS, cpulink, frequency);
         linkUp_->setRecvHandler(new Event::Handler<Cache>(this, &Cache::handleEvent));
-        clockDownLink_ = true;
-        clockUpLink_ = false;
 
         region_ = linkDown_->getRegion();
         linkUp_->setRegion(region_);
@@ -570,15 +557,11 @@ void Cache::configureLinks(Params &params) {
 
         // Configure high link
         linkUp_ = linkDown_;
-        clockDownLink_ = true;
-        clockUpLink_ = false;
 
         region_ = linkDown_->getRegion();
         linkUp_->setRegion(region_);
     }
 
-    //linkUp_->setName(getName());
-    //linkDown_->setName(getName());
 }
 
 /*

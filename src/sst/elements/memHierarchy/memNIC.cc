@@ -109,7 +109,7 @@ void MemNIC::send(MemEventBase *ev) {
     std::string debugEvStr;
     if (is_debug_event(ev)) {
         debugEvStr = ev->getBriefString();
-        dbg.debug(_L9_, "   %-20" PRIu64 "                      %-20s Enqueue       (%s)\n", 
+        dbg.debug(_L9_, "L: %-20" PRIu64 "                      %-20s Enqueue       (%s)\n", 
             Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), debugEvStr.c_str());
     }
     SimpleNetwork::Request *req = new SimpleNetwork::Request();
@@ -126,14 +126,12 @@ void MemNIC::send(MemEventBase *ev) {
 
     req->givePayload(mre);
     // If sendqueue not empty, enqueue (wakeup already queued)
-    if (!sendQueue.empty()) {
-        sendQueue.push(req);
-    } else {
-        sendQueue.push(req);
+    
+    sendQueue.push(req);
+    if (sendQueue.size() == 1) {
         if (!drainQueue(&sendQueue, link_control)) {
             bufferlink->send(1, nullptr); // Retry next cycle
-        }
-        
+        }    
     }
 }
 

@@ -13,6 +13,7 @@ DEBUG_L2 = 0
 DEBUG_L3 = 0
 DEBUG_DIR = 0
 DEBUG_MEM = 0
+DEBUG_NIC = 0
 
 # Define the simulation components
 comp_cpu0 = sst.Component("cpu0", "memHierarchy.trivialCPU")
@@ -160,7 +161,7 @@ l3NIC = l3cache.setSubComponent("memlink", "memHierarchy.MemNIC")
 l3NIC.addParams({
     "group" : 1,
     "network_bw" : "25GB/s",
-#   "debug" : 1,
+    "debug" : DEBUG_NIC,
     "debug_level" : 10,
 })
 comp_chiprtr = sst.Component("chiprtr", "merlin.hr_router")
@@ -190,7 +191,7 @@ dirNIC.addParams({
     "network_bw" : "25GB/s",
     "network_input_buffer_size" : "2KiB",
     "network_output_buffer_size" : "2KiB",
-#   "debug" : 1,
+    "debug" : DEBUG_NIC,
     "debug_level" : 10,
 })
 memctrl = sst.Component("memory", "memHierarchy.MemController")
@@ -216,7 +217,7 @@ memory.addParams({
 memNIC = memctrl.setSubComponent("cpulink", "memHierarchy.MemNIC")
 memNIC.addParams({
     "group" : 3,
-#   "debug" : 1,
+    "debug" : DEBUG_NIC,
     "debug_level" : 10,
     "network_bw" : "25GB/s",
     "network_input_buffer_size" : "2KiB",

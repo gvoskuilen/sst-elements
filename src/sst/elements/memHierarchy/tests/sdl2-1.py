@@ -45,10 +45,9 @@ l2cache.addParams({
 })
 memctrl = sst.Component("memory", "memHierarchy.MemController")
 memctrl.addParams({
-    "coherence_protocol" : "MSI",
     "clock" : "1GHz",
-    "backend.access_time" : "100 ns",
-    "backend.mem_size" : "512MiB",
+    "addr_range_start" : 0,
+    "addr_range_end" : 512*1024*1024 - 1, # 512MB
     "verbose" : verbose,
     "debug" : DEBUG_MEM,
     "debug_level" : "10"

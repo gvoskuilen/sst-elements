@@ -168,6 +168,8 @@ memctrl = sst.Component("memory", "memHierarchy.MemController")
 memctrl.addParams({
     "clock" : "1GHz",
     "backing" : "none",
+    "addr_range_start" : 0,
+    "addr_range_end" : 512*1024*1024 - 1,
 })
 memreorder = memctrl.setSubComponent("backend", "memHierarchy.reorderSimple")
 memreorder.addParams({

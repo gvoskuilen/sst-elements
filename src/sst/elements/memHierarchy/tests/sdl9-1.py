@@ -59,6 +59,8 @@ memctrl = sst.Component("memctrl", "memHierarchy.MemController")
 memctrl.addParams({
       "debug" : DEBUG_MEM,
       "clock" : "1GHz",
+    "addr_range_start" : 0,
+    "addr_range_end" : 1024*1024*512 - 1,
 })
 memory = memctrl.setSubComponent("backend", "memHierarchy.simpleMem")
 memory.addParams({

@@ -173,6 +173,10 @@ for x in range(memories):
         "verbose" : verbose,
         "debug" : DEBUG_MEM,
         "debug_level" : 10,
+        "interleave_size" : "64B",    # Interleave at line granularity between memories
+        "interleave_step" : str(memories * 64) + "B",
+        "addr_range_start" : x*64,
+        "addr_range_end" :  1024*1024*1024 - ((memories - x) * 64) + 63,
     })
 
     memory = memctrl.setSubComponent("backend", "memHierarchy.simpleDRAM")

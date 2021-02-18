@@ -239,9 +239,7 @@ MemController::MemController(ComponentId_t id, Params &params) : Component(id), 
         }
     }
 
-    clockLink_ = link_->isClocked();
     link_->setRecvHandler( new Event::Handler<MemController>(this, &MemController::handleEvent));
-    link_->setName(getName());
 
     if (gotRegion) {
         link_->setRegion(region_);
@@ -334,7 +332,8 @@ void MemController::handleEvent(SST::Event* event) {
     MemEventBase *meb = static_cast<MemEventBase*>(event);
 
     if (is_debug_event(meb)) {
-        Debug(_L3_, "\n%" PRIu64 " (%s) Received: %s\n", getCurrentSimTimeNano(), getName().c_str(), meb->getVerboseString().c_str());
+        Debug(_L3_, "E: %-20" PRIu64 " %-20" PRIu64 " %-20s Event:New     (%s)\n",
+            Simulation::getSimulation()->getCurrentSimCycle(), Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), meb->getVerboseString().c_str());
     }
 
     Command cmd = meb->getCmd();
@@ -425,14 +424,9 @@ void MemController::handleEvent(SST::Event* event) {
 }
 
 bool MemController::clock(Cycle_t cycle) {
-    bool unclockLink = true;
-    if (clockLink_) {
-        unclockLink = link_->clock();
-    }
-
     bool unclockBack = memBackendConvertor_->clock( cycle );
 
-    if (unclockLink && unclockBack) {
+    if (unclockBack) {
         memBackendConvertor_->turnClockOff();
         clockOn_ = false;
         return true;
@@ -474,14 +468,18 @@ void MemController::handleMemResponse( Event::id_type id, uint32_t flags ) {
     outstandingEvents_.erase(it);
 
     if (is_debug_event(evb)) {
-        Debug(_L3_, "Memory Controller: %s - Response received to (%s)\n", getName().c_str(), evb->getVerboseString().c_str());
+        Debug(_L3_, "E: %-20" PRIu64 " %-20" PRIu64 " %-20s BackendResp   (%s)\n",
+            Simulation::getSimulation()->getCurrentSimCycle(), Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), evb->getVerboseString().c_str());
     }
 
     /* Handle custom events */
     if (evb->getCmd() == Command::CustomReq) {
         MemEventBase * resp = customCommandHandler_->finish(evb, flags);
-        if (resp != nullptr)
+        if (resp != nullptr) {
+            dbg.debug(_L4_, "E: %-20" PRIu64 " %-20" PRIu64 " %-20s Event:Send    (%s)\n",
+                    Simulation::getSimulation()->getCurrentSimCycle(), Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), resp->getBriefString().c_str());
             link_->send(resp);
+        }
         delete evb;
         return;
     }
@@ -514,6 +512,9 @@ void MemController::handleMemResponse( Event::id_type id, uint32_t flags ) {
         resp->setBaseAddr(translateToGlobal(ev->getBaseAddr()));
         resp->setAddr(translateToGlobal(ev->getAddr()));
     }
+    
+    dbg.debug(_L4_, "E: %-20" PRIu64 " %-20" PRIu64 " %-20s Event:Send    (%s)\n",
+            Simulation::getSimulation()->getCurrentSimCycle(), Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), resp->getBriefString().c_str());
 
     link_->send( resp );
     delete ev;
@@ -620,7 +621,10 @@ Addr MemController::translateToLocal(Addr addr) {
         Addr offset = shift % region_.interleaveStep;
         rAddr = (step * region_.interleaveSize) + offset + privateMemOffset_;
     }
-    if (is_debug_addr(addr)) { Debug(_L10_,"\tConverting global address 0x%" PRIx64 " to local address 0x%" PRIx64 "\n", addr, rAddr); }
+    if (is_debug_addr(addr) && addr != rAddr) { 
+        Debug(_L10_, "M: %-20" PRIu64 " %-20" PRIu64 " %-20s Convert       (Global 0x%" PRIx64 " to local 0x%" PRIx64")\n",
+            Simulation::getSimulation()->getCurrentSimCycle(), Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), addr, rAddr);
+    }
     return rAddr;
 }
 
@@ -635,7 +639,10 @@ Addr MemController::translateToGlobal(Addr addr) {
         rAddr = rAddr / region_.interleaveSize;
         rAddr = rAddr * region_.interleaveStep + offset + region_.start;
     }
-    if (is_debug_addr(rAddr)) { Debug(_L10_,"\tConverting local address 0x%" PRIx64 " to global address 0x%" PRIx64 "\n", addr, rAddr); }
+    if (is_debug_addr(rAddr)) { 
+        Debug(_L10_, "M: %-20" PRIu64 " %-20" PRIu64 " %-20s Convert       (Local 0x%" PRIx64 " to global 0x%" PRIx64")\n",
+            Simulation::getSimulation()->getCurrentSimCycle(), Simulation::getSimulation()->getCurrentSimCycle(), getName().c_str(), addr, rAddr);
+    }
     return rAddr;
 }
 

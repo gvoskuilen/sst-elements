@@ -534,7 +534,7 @@ void ArielCore::gpu(){
 // Function to generate physical addresses for GPGPU-Sim Component
 // Handles split-write/read
 void ArielCore::setPhysicalAddresses(SST::Event *ev){
-    GpgpusimEvent * gEv =  dynamic_cast<GpgpusimComponent::GpgpusimEvent*> (ev);
+    GpgpusimEvent * gEv =  static_cast<GpgpusimComponent::GpgpusimEvent*> (ev);
     uint64_t phy_addr;
     uint64_t addr_offset;
     uint64_t current_transfer;
@@ -847,7 +847,7 @@ bool ArielCore::refillQueue() {
 
                             default:
                                     // Not sure what this is
-                                    output->fatal(CALL_INFO, -1, "Error: Ariel did not understand command (%d) provided during instruction queue refill.\n", (int)(ac.command));
+                                    output->fatal(CALL_INFO, -1, "Error: Ariel did not understand command (%d) provided during instruction queue refill (in mem instr).\n", (int)(ac.command));
                                     break;
                         }
                 }
@@ -1265,7 +1265,7 @@ void ArielCore::handleGpuEvent(ArielGpuEvent* gEv){
 }
 
 void ArielCore::handleGpuAckEvent(SST::Event* e){
-    GpgpusimEvent * ev = dynamic_cast<GpgpusimComponent::GpgpusimEvent*>(e);
+    GpgpusimEvent * ev = static_cast<GpgpusimComponent::GpgpusimEvent*>(e);
     if (ev->getType() == GpgpusimComponent::EventType::RESPONSE){
         if((ev->API == GPU_MEMCPY_RET)&&(ev->CA.cuda_memcpy.kind == cudaMemcpyDeviceToHost)){
             // Device to Host still needs us to get the data for fesimple
@@ -1351,7 +1351,7 @@ bool ArielCore::processNextEvent() {
                     statInstructionCount->addData(1);
                     inst_count++;
                     removeEvent = true;
-                    handleReadRequest(dynamic_cast<ArielReadEvent*>(nextEvent));
+                    handleReadRequest(static_cast<ArielReadEvent*>(nextEvent));
                 } else {
                     ARIEL_CORE_VERBOSE(16, output->verbose(CALL_INFO, 16, 0, "Pending transaction queue is currently full for core %" PRIu32 ", core will stall for new events\n", coreID));
                     break;
@@ -1367,7 +1367,7 @@ bool ArielCore::processNextEvent() {
                     statInstructionCount->addData(1);
                     inst_count++;
                             removeEvent = true;
-                    handleWriteRequest(dynamic_cast<ArielWriteEvent*>(nextEvent));
+                    handleWriteRequest(static_cast<ArielWriteEvent*>(nextEvent));
                 } else {
                     ARIEL_CORE_VERBOSE(16, output->verbose(CALL_INFO, 16, 0, "Pending transaction queue is currently full for core %" PRIu32 ", core will stall for new events\n", coreID));
                     break;
@@ -1387,25 +1387,25 @@ bool ArielCore::processNextEvent() {
         case SWITCH_POOL:
                 ARIEL_CORE_VERBOSE(8, output->verbose(CALL_INFO, 8, 0, "Core %" PRIu32 " next event is a SWITCH_POOL\n", coreID));
                 removeEvent = true;
-                handleSwitchPoolEvent(dynamic_cast<ArielSwitchPoolEvent*>(nextEvent));
+                handleSwitchPoolEvent(static_cast<ArielSwitchPoolEvent*>(nextEvent));
                 break;
 
         case FREE:
                 ARIEL_CORE_VERBOSE(8, output->verbose(CALL_INFO, 8, 0, "Core %" PRIu32 " next event is FREE\n", coreID));
                 removeEvent = true;
-                handleFreeEvent(dynamic_cast<ArielFreeEvent*>(nextEvent));
+                handleFreeEvent(static_cast<ArielFreeEvent*>(nextEvent));
                 break;
 
         case MALLOC:
                 ARIEL_CORE_VERBOSE(8, output->verbose(CALL_INFO, 8, 0, "Core %" PRIu32 " next event is MALLOC\n", coreID));
                 removeEvent = true;
-                handleAllocationEvent(dynamic_cast<ArielAllocateEvent*>(nextEvent));
+                handleAllocationEvent(static_cast<ArielAllocateEvent*>(nextEvent));
                 break;
 
         case MMAP:
                 ARIEL_CORE_VERBOSE(8, output->verbose(CALL_INFO, 8, 0, "Core %" PRIu32 " next event is MMAP\n", coreID));
                 removeEvent = true;
-                handleMmapEvent(dynamic_cast<ArielMmapEvent*>(nextEvent));
+                handleMmapEvent(static_cast<ArielMmapEvent*>(nextEvent));
                 break;
 
         case CORE_EXIT:
@@ -1421,7 +1421,7 @@ bool ArielCore::processNextEvent() {
                     ARIEL_CORE_VERBOSE(16, output->verbose(CALL_INFO, 16, 0, "Found a FLUSH event, fewer pending transactions than permitted so will process..\n"));
                     statInstructionCount->addData(1);
                     inst_count++;
-                    handleFlushEvent(dynamic_cast<ArielFlushEvent*>(nextEvent));
+                    handleFlushEvent(static_cast<ArielFlushEvent*>(nextEvent));
                     removeEvent = true;
                 } else {
                     ARIEL_CORE_VERBOSE(16, output->verbose(CALL_INFO, 16, 0, "Pending transaction queue is currently full for core %" PRIu32 ",core will stall for new events\n", coreID));
@@ -1431,7 +1431,7 @@ bool ArielCore::processNextEvent() {
         case FENCE:
                 ARIEL_CORE_VERBOSE(8, output->verbose(CALL_INFO, 8, 0, "Core %" PRIu32 " next event is a FENCE\n", coreID));
                 if(!isCoreFenced()) {// If core is fenced, drop this fence - they can be merged
-                    handleFenceEvent(dynamic_cast<ArielFenceEvent*>(nextEvent));
+                    handleFenceEvent(static_cast<ArielFenceEvent*>(nextEvent));
                 }
                 removeEvent = true;
                 break;
@@ -1441,7 +1441,7 @@ bool ArielCore::processNextEvent() {
             removeEvent = true;
             stall();
             gpu();
-            handleGpuEvent(dynamic_cast<ArielGpuEvent*>(nextEvent));
+            handleGpuEvent(static_cast<ArielGpuEvent*>(nextEvent));
             break;
 #endif
         default:

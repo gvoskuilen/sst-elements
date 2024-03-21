@@ -71,6 +71,10 @@ class ArielCPU : public SST::Component {
         {"clock", "Clock rate at which events are generated and processed", "1GHz"},
         {"tracegen", "Select the trace generator for Ariel (which records traced memory operations", ""},
         {"memmgr", "Memory manager to use for address translation", "ariel.MemoryManagerSimple"},
+        {"launchMode", "Launch mode for Pin - fork (default), manual, or auto. If manual is selected, must manually launch the executable/PIN.", "fork"},
+        {"mpiranks", "Number of non-pinned MPI ranks to launch if using non-default (not fork) launch mode", "0"},
+        {"pinranks", "Number of pinned MPI ranks to launch if using non-default (not fork) launch mode", "1"},
+        {"max_insts", "Number of instructions for core 0 to execute, 0 is unlimited (i.e., run until executable terminates)", "0"},
         {"writepayloadtrace", "Trace write payloads and put real memory contents into the memory system", "0"},
         {"instrument_instructions", "turn on or off instruction instrumentation in fesimple", "1"},
         {"gpu_enabled", "If enabled, gpu links will be set up", "0"})
@@ -87,8 +91,8 @@ class ArielCPU : public SST::Component {
         { "split_read_requests",  "Statistic counts number of split read requests (requests which come from multiple lines)", "requests", 1},
         { "split_write_requests", "Statistic counts number of split write requests (requests which are split over multiple lines)", "requests", 1},
         { "no_ops",               "Statistic counts instructions which do not execute a memory operation", "instructions", 1},
-	    { "flush_requests",       "Statistic counts instructions which perform flushes", "requests", 1},
-	    { "fence_requests",       "Statistic counts instructions which perform fences", "requests", 1},
+	{ "flush_requests",       "Statistic counts instructions which perform flushes", "requests", 1},
+	{ "fence_requests",       "Statistic counts instructions which perform fences", "requests", 1},
         { "instruction_count",    "Statistic for counting instructions", "instructions", 1 },
         { "max_insts", "Maximum number of instructions reached by a thread",	"instructions", 0},
         { "fp_dp_ins",            "Statistic for counting DP-floating point instructions", "instructions", 1 },
@@ -115,7 +119,7 @@ class ArielCPU : public SST::Component {
         virtual void setup() {}
         virtual void finish();
         virtual bool tick( SST::Cycle_t );
-        int forkPINChild(const char* app, char** args, std::map<std::string, std::string>& app_env);
+        int forkPINChild(const char* app, char** args, std::map<std::string, std::string>& app_env, std::string launchMode);
 
     private:
         SST::Output* output;
@@ -128,6 +132,7 @@ class ArielCPU : public SST::Component {
         pid_t child_pid;
 
         uint32_t core_count;
+        uint32_t childcount;
         ArielTunnel* tunnel;
         bool stopTicking;
 
@@ -141,7 +146,8 @@ class ArielCPU : public SST::Component {
 
         char **execute_args;
         std::map<std::string, std::string> execute_env;
-
+        
+        std::string pinLaunchMode;
 };
 
 }

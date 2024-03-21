@@ -40,6 +40,11 @@ libariel_la_SOURCES = \
 
 EXTRA_DIST = \
 	frontend/simple/fesimple.cc \
+	frontend/simple/fesimple-profile.cc \
+	frontend/simple/vdsoparser.h \
+	frontend/simple/vdsoparser.cc \
+	frontend/simple/shadowstack.h \
+	frontend/simple/shadowstack.cc \
 	frontend/simple/examples/multicore.py \
 	frontend/simple/examples/stream/Makefile \
 	frontend/simple/examples/stream/ariel_ivb.py \
@@ -109,6 +114,10 @@ all-local: frontend/simple/fesimple.cc
 	-L$(PINTOOL_DIR)/intel64/lib-ext \
 	-L$(PINTOOL_DIR)/extras/xed-intel64/lib \
 	-o fesimple.dylib $(top_srcdir)/src/sst/elements/ariel/frontend/simple/fesimple.cc \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/vdsoparser.h \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/vdsoparser.cc \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/shadowstack.h \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/shadowstack.cc \
 	-stdlib=libstdc++ \
 	-lpin -lxed -lpindwarf -lpthread $(LIBZ_LDFLAGS) $(LIBZ_LIB) $(CUDA_LDFLAGS)
 
@@ -118,7 +127,7 @@ install-exec-hook:
 
 else
 
-all-local:
+fenorm:
 	$(CXX) -shared -Wl,--hash-style=sysv -Wl,-Bsymbolic \
 	-fPIC -O3 \
 	-fomit-frame-pointer \
@@ -142,11 +151,47 @@ all-local:
 	-L$(PINTOOL_DIR)/extras/xed-intel64/lib \
 	$(CUDA_LIBS) \
 	-o fesimple.so $(top_srcdir)/src/sst/elements/ariel/frontend/simple/fesimple.cc \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/vdsoparser.h \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/vdsoparser.cc \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/shadowstack.h \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/shadowstack.cc \
 	-ldl -lpin -lxed -lpindwarf -ldl -lpthread -lrt $(LIBZ_LDFLAGS) $(LIBZ_LIB) $(CUDA_LDFLAGS)
 
+feprof:
+	$(CXX) -shared -Wl,--hash-style=sysv -Wl,-Bsymbolic \
+	-fPIC -O3 \
+	-fomit-frame-pointer \
+	$(CXXFLAGS) \
+	$(CPPFLAGS) \
+	$(LIBZ_CPPFLAGS) \
+	$(CUDA_CPPFLAGS) \
+	-DTARGET_IA32E -DHOST_IA32E -fPIC -DTARGET_LINUX \
+	-I./ \
+	-I$(PINTOOL_DIR)/source/include/pin \
+	-I$(PINTOOL_DIR)/ \
+	-I$(PINTOOL_DIR)/extras/components/include \
+	-I$(PINTOOL_DIR)/source/include/pin/gen/ \
+	-I$(PINTOOL_DIR)/extras/xed-intel64/include \
+	-I$(top_srcdir)/src/sst \
+	-I$(top_srcdir)/src/sst/elements/ariel \
+	-Wl,--version-script=$(PINTOOL_DIR)/source/include/pin/pintool.ver \
+	-L$(PINTOOL_DIR)/intel64/lib \
+	-L$(PINTOOL_DIR)/intel64/lib-ext \
+	-L$(PINTOOL_DIR)/intel64/runtime/glibc \
+	-L$(PINTOOL_DIR)/extras/xed-intel64/lib \
+	$(CUDA_LIBS) \
+	-o fesimpleprofile.so $(top_srcdir)/src/sst/elements/ariel/frontend/simple/fesimple-profile.cc \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/vdsoparser.h \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/vdsoparser.cc \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/shadowstack.h \
+	$(top_srcdir)/src/sst/elements/ariel/frontend/simple/shadowstack.cc \
+	-ldl -lpin -lxed -lpindwarf -ldl -lpthread -lrt $(LIBZ_LDFLAGS) $(LIBZ_LIB) $(CUDA_LDFLAGS)
+
+all-local: fenorm feprof
 
 install-exec-hook:
 	$(MKDIR_P) $(libexecdir)
 	$(INSTALL) fesimple.so $(libexecdir)/fesimple.so
+	$(INSTALL) fesimpleprofile.so $(libexecdir)/fesimpleprofile.so
 
 endif

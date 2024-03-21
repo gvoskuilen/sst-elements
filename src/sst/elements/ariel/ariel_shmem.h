@@ -1,5 +1,4 @@
-// Copyright 2009-2019 NTESS. Under the terms
-// of Contract DE-NA0003525 with NTESS, the U.S.
+
 // Government retains certain rights in this software.
 //
 // Copyright (c) 2009-2019, NTESS
@@ -17,6 +16,7 @@
 #define SST_ARIEL_SHMEM_H 
 
 #include <inttypes.h>
+#include <atomic>
 
 #include <sst/core/interprocess/ipctunnel.h>
 #include "ariel_inst_class.h"
@@ -174,8 +174,9 @@ struct ArielSharedData {
     size_t numCores;
     uint64_t simTime;
     uint64_t cycles;
-    volatile uint32_t child_attached;
-    uint8_t __pad[ 256 - sizeof(uint32_t) - sizeof(size_t) - sizeof(uint64_t) - sizeof(uint64_t)];
+    std::atomic<int> child_attached;
+    bool enabled;
+    uint8_t __pad[ 256 - sizeof(uint32_t) - sizeof(size_t) - sizeof(uint64_t) - sizeof(uint64_t) - sizeof(bool)];
 };
 
 class ArielTunnel : public SST::Core::Interprocess::IPCTunnel<ArielSharedData, ArielCommand>
@@ -184,12 +185,13 @@ public:
     /**
      * Create a new Ariel Tunnel
      */
-    ArielTunnel(uint32_t comp_id, size_t numCores, size_t bufferSize) :
-        SST::Core::Interprocess::IPCTunnel<ArielSharedData, ArielCommand>(comp_id, numCores, bufferSize) {
+    ArielTunnel(uint32_t comp_id, size_t numCores, size_t bufferSize, uint32_t children = 1) :
+        SST::Core::Interprocess::IPCTunnel<ArielSharedData, ArielCommand>(comp_id, numCores, bufferSize, children) {
         sharedData->numCores = numCores;
         sharedData->simTime = 0;
         sharedData->cycles = 0;
         sharedData->child_attached = 0;
+        sharedData->enabled = false;
     }
 
     /**
@@ -197,12 +199,26 @@ public:
      */
     ArielTunnel(const std::string &region_name) :
         SST::Core::Interprocess::IPCTunnel<ArielSharedData, ArielCommand>(region_name) {
-        /* Ideally, this would be done atomically, but we'll only have 1 child */
-        sharedData->child_attached++;
+        int count = (sharedData->child_attached)++; // Atomic increment & get value
+        printf("Got attach: count is %d\n", count);
     }
 
-    void waitForChild(void) {
-        while ( sharedData->child_attached == 0 ) ;
+    bool cleanUpChild() {
+        int count = --(sharedData->child_attached); // Atomic decrement & get value
+        printf("Got cleanUp: count is %d\n", count);
+        return !(count);
+    }
+
+    void waitForChild(int goal = 1) {
+        while ( sharedData->child_attached < goal ) ;
+    }
+    
+    void setEnabled() {
+        sharedData->enabled = true;
+    }
+
+    bool getEnabled() {
+        return sharedData->enabled;
     }
 
     /** Update the current simulation cycle count in the SharedData region */

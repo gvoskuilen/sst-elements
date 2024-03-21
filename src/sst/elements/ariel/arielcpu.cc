@@ -16,7 +16,6 @@
 
 #include <sst_config.h>
 #include <sst/core/simulation.h>
-
 #include "arielcpu.h"
 
 #include <signal.h>
@@ -56,6 +55,12 @@ ArielCPU::ArielCPU(ComponentId_t id, Params& params) :
 
     uint32_t perform_checks = (uint32_t) params.find<uint32_t>("checkaddresses", 0);
     output->verbose(CALL_INFO, 1, 0, "Configuring for check addresses = %s\n", (perform_checks > 0) ? "yes" : "no");
+
+    pinLaunchMode = params.find<std::string>("launchMode", "fork");
+    uint32_t mpi_procs = params.find<uint32_t>("mpiranks", 0);
+    childcount = params.find<uint32_t>("pinranks", 1);
+
+    output->verbose(CALL_INFO, 0, 0, "Ariel Pin Launch Mode is '%s'. Pin: %" PRIu32 ", UnPin: %" PRIu32 "\n", pinLaunchMode.c_str(), childcount, mpi_procs);
 
     int instrument_instructions = params.find<int>("instrument_instructions", 1);
 
@@ -209,7 +214,7 @@ ArielCPU::ArielCPU(ComponentId_t id, Params& params) :
         output->verbose(CALL_INFO, 1, 0, "Malloc map file is ENABLED, using file '%s'\n", malloc_map_filename.c_str());
     }
 
-    tunnel = new ArielTunnel(id, core_count, maxCoreQueueLen);
+    tunnel = new ArielTunnel(id, core_count, maxCoreQueueLen, childcount);
     std::string shmem_region_name = tunnel->getRegionName();
     output->verbose(CALL_INFO, 1, 0, "Base pipe name: %s\n", shmem_region_name.c_str());
 
@@ -226,7 +231,8 @@ ArielCPU::ArielCPU(ComponentId_t id, Params& params) :
     appLauncher = params.find<std::string>("launcher", PINTOOL_EXECUTABLE);
 
     const uint32_t launch_param_count = (uint32_t) params.find<uint32_t>("launchparamcount", 0);
-    const uint32_t pin_arg_count = 37 + launch_param_count;
+    const uint32_t launch_type_args = (pinLaunchMode != "fork" && pinLaunchMode != "manual") ? 3 : 0;
+    const uint32_t pin_arg_count = 37 + launch_param_count + launch_type_args;
 
     execute_args = (char**) malloc(sizeof(char*) * (pin_arg_count + app_argc));
 
@@ -235,14 +241,26 @@ ArielCPU::ArielCPU(ComponentId_t id, Params& params) :
     output->verbose(CALL_INFO, 1, 0, "Processing application arguments...\n");
 
     uint32_t arg = 0;
-    execute_args[0] = (char*) malloc(sizeof(char) * (appLauncher.size() + 2));
-    sprintf(execute_args[0], "%s", appLauncher.c_str());
+    
+    if (pinLaunchMode != "fork" && pinLaunchMode != "manual") {
+        execute_args[arg] = (char*) malloc(sizeof(char) * (pinLaunchMode.size() + 2));
+        sprintf(execute_args[arg], "%s", pinLaunchMode.c_str());
+        arg++;
+        execute_args[arg] = (char*) malloc(sizeof(char) * 8);
+        sprintf(execute_args[arg], "%" PRIu32, mpi_procs);
+        arg++;
+        execute_args[arg] = (char*) malloc(sizeof(char) * 8);
+        sprintf(execute_args[arg], "%" PRIu32, childcount);
+        arg++;
+    }
+
+    execute_args[arg] = (char*) malloc(sizeof(char) * (appLauncher.size() + 2));
+    sprintf(execute_args[arg], "%s", appLauncher.c_str());
     arg++;
 
-#if 0
-    execute_args[arg++] = const_cast<char*>("-pause_tool");
-    execute_args[arg++] = const_cast<char*>("15");
-#endif
+
+//    execute_args[arg++] = const_cast<char*>("-pause_tool");
+//    execute_args[arg++] = const_cast<char*>("15");
 
 #ifdef HAVE_CUDA
     execute_args[arg++] = const_cast<char*>("-injection");
@@ -280,6 +298,9 @@ ArielCPU::ArielCPU(ComponentId_t id, Params& params) :
         execute_args[arg++] = const_cast<char*>("1");
     }
 
+    uint32_t coresperchild = core_count/childcount;
+    printf("Cores per child: %" PRIu32 " (%" PRIu32 ", %" PRIu32 ")\n", coresperchild, core_count, childcount);
+
     execute_args[arg++] = const_cast<char*>("-E");
     execute_args[arg++] = (char*) malloc(sizeof(char) * 8);
     sprintf(execute_args[arg-1], "%d", instrument_instructions);
@@ -305,7 +326,7 @@ ArielCPU::ArielCPU(ComponentId_t id, Params& params) :
     sprintf(execute_args[arg-1], "%" PRIu64, (uint64_t) 1000000000);
     execute_args[arg++] = const_cast<char*>("-c");
     execute_args[arg++] = (char*) malloc(sizeof(char) * 8);
-    sprintf(execute_args[arg-1], "%" PRIu32, core_count);
+    sprintf(execute_args[arg-1], "%" PRIu32, coresperchild);
     execute_args[arg++] = const_cast<char*>("-s");
     execute_args[arg++] = (char*) malloc(sizeof(char) * 8);
     sprintf(execute_args[arg-1], "%" PRIu32, pin_startup_mode);
@@ -315,9 +336,11 @@ ArielCPU::ArielCPU(ComponentId_t id, Params& params) :
     execute_args[arg++] = const_cast<char*>("-k");
     execute_args[arg++] = (char*) malloc(sizeof(char) * 8);
     sprintf(execute_args[arg-1], "%" PRIu32, keep_malloc_stack_trace);
-    execute_args[arg++] = const_cast<char*>("-u");
-    execute_args[arg++] = (char*) malloc(sizeof(char) * (malloc_map_filename.size() + 1));
-    strcpy(execute_args[arg-1], malloc_map_filename.c_str());
+    if (malloc_map_filename.size() > 0) {
+        execute_args[arg++] = const_cast<char*>("-u");
+        execute_args[arg++] = (char*) malloc(sizeof(char) * (malloc_map_filename.size() + 1));
+        strcpy(execute_args[arg-1], malloc_map_filename.c_str());
+    }
     execute_args[arg++] = const_cast<char*>("-d");
     execute_args[arg++] = (char*) malloc(sizeof(char) * 8);
     sprintf(execute_args[arg-1], "%" PRIu32, memmgr->getDefaultPool());
@@ -450,11 +473,12 @@ void ArielCPU::init(unsigned int phase)
         // Init the child_pid = 0, this prevents problems in emergencyShutdown()
         // if forkPINChild() calls fatal (i.e. the child_pid would not be set)
         child_pid = 0;
-        child_pid = forkPINChild(appLauncher.c_str(), execute_args, execute_env);
-        output->verbose(CALL_INFO, 1, 0, "Returned from launching PIN.  Waiting for child to attach.\n");
+        child_pid = forkPINChild(appLauncher.c_str(), execute_args, execute_env, pinLaunchMode);
+        output->verbose(CALL_INFO, 1, 0, "Returned from launching PIN. Method is %s. Waiting for child to attach.\n", pinLaunchMode.c_str());
 
         tunnel->waitForChild();
         output->verbose(CALL_INFO, 1, 0, "Child has attached!\n");
+        std::cout << std::flush;
     }
 
     for (uint32_t i = 0; i < core_count; i++) {
@@ -477,9 +501,9 @@ void ArielCPU::finish() {
     memmgr->printStats();
 }
 
-int ArielCPU::forkPINChild(const char* app, char** args, std::map<std::string, std::string>& app_env) {
+int ArielCPU::forkPINChild(const char* app, char** args, std::map<std::string, std::string>& app_env, std::string launchMode) {
     // If user only wants to init the simulation then we do NOT fork the binary
-    if(Simulation::getSimulation()->getSimulationMode() == Simulation::INIT)
+    if (Simulation::getSimulation()->getSimulationMode() == Simulation::INIT)
         return 0;
 
     int next_arg_index = 0;
@@ -505,9 +529,41 @@ int ArielCPU::forkPINChild(const char* app, char** args, std::map<std::string, s
 
     full_execute_line[next_line_index] = '\0';
 
-    output->verbose(CALL_INFO, 1, 0, "Executing PIN command: %s\n", full_execute_line);
-    free(full_execute_line);
+    if (launchMode == "manual") {
+        output->verbose(CALL_INFO, 0, 0, "Manual launch PIN command: %s\n", full_execute_line);
+        std::cout << std::flush;
+        free(full_execute_line);
+        return 0;
+    } else if (launchMode != "fork") {
+        output->verbose(CALL_INFO, 2, 0, "Starting mpilauncher with args: %s\n", full_execute_line);
+        std::cout << std::flush;
 
+        pid_t the_child;
+        the_child = fork();
+        if (the_child < 0) {
+            perror("fork");
+            output->fatal(CALL_INFO, 1, "Fork failed to launch the %s process. errno = %d, errstr = %s\n", args[0], errno, strerror(errno));
+        }
+
+        if (the_child != 0) { /* Parent: continue */
+            child_pid = the_child;
+            sleep(1);
+            int pstat;
+            pid_t check = waitpid(the_child, &pstat, WNOHANG);
+            if (check != 0) {
+                output->fatal(CALL_INFO, -1, "%s, Error launching child and you were too lazy for a real error message\n", getName().c_str());
+            }
+            return (int) the_child;
+        } else { /* Child: execv the mpilauncher */
+            int ret_code = execvp(args[0], args);
+            output->fatal(CALL_INFO, -1, "%s, Error: failed to execvp mpilauncher", getName().c_str());
+        }
+        return 0;
+    } else {
+        output->verbose(CALL_INFO, 1, 0, "Executing PIN command: %s\n", full_execute_line);
+    }
+        
+    free(full_execute_line);
     pid_t the_child;
 
     // Fork this binary, then exec to get around waiting for

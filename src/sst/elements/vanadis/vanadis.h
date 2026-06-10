@@ -150,12 +150,13 @@ public:
         { "enable_simt", "Implement SIMT pipeline for multithread kernels", "false"}  )
 
     SST_ELI_DOCUMENT_STATISTICS(
-        { "cycles", "Number of cycles the core executed", "cycles", 1 },
+        { "active_cycles", "Number of cycles the core executed after beginning application", "cycles", 1 },
+        { "idle_cycles", "Number of cycles the core was idle prior to application start", "cycles", 1 },
         { "syscall-cycles",
           "Number of cycles spent waiting on execution of SYSCALL in OS "
           "components",
           "cycles", 1 },
-        { "rob_slots_in_use", "Number of micro-ops in the ROB each cycle", "instructions", 1 },
+        { "rob_slots_in_use", "Number of micro-ops in the ROB each active cycle", "instructions", 1 },
         { "rob_cleared_entries", "Number of micro-ops that are cleared during a pipeline clear", "instructions", 1 },
         { "instructions_issued", "Number of instructions issued", "instructions", 1 },
         { "instructions_retired", "Number of instructions retired", "instructions", 1 },
@@ -164,8 +165,8 @@ public:
         { "branches", "Number of retired branches", "instructions", 1 },
         { "loads_issued", "Number of load instructions issued to the LSQ", "instructions", 1 },
         { "stores_issued", "Number of store instructions issued to the LSQ", "instructions", 1 },
-        { "phys_int_reg_in_use", "Number of physical integer registers that are in use each cycle", "registers", 1 },
-        { "phys_fp_reg_in_use", "Number of physical floating point registers than are in use each cycle", "registers",
+        { "phys_int_reg_in_use", "Number of physical integer registers that are in use each active cycle", "registers", 1 },
+        { "phys_fp_reg_in_use", "Number of physical floating point registers than are in use each active cycle", "registers",
           1 })
 
     SST_ELI_DOCUMENT_PORTS({ "icache_link", "Connects the CPU to the instruction cache", {} },
@@ -266,6 +267,8 @@ private:
 
     void resetHwThread(uint32_t thr);
 
+    void enableClock();
+
     SST::Output* output = nullptr;
 
     uint16_t core_id;
@@ -333,6 +336,7 @@ private:
 
     TimeConverter           clock_tc_;
     Clock::HandlerBase*     clock_handler_ = nullptr;
+    bool                    clock_off_ = false;
 
     Statistic<uint64_t>* stat_ins_retired = nullptr;
     Statistic<uint64_t>* stat_ins_decoded = nullptr;
@@ -341,7 +345,8 @@ private:
     Statistic<uint64_t>* stat_stores_issued = nullptr;
     Statistic<uint64_t>* stat_branch_mispredicts = nullptr;
     Statistic<uint64_t>* stat_branches = nullptr;
-    Statistic<uint64_t>* stat_cycles = nullptr;
+    Statistic<uint64_t>* stat_active_cycles = nullptr;
+    Statistic<uint64_t>* stat_idle_cycles = nullptr;
     Statistic<uint64_t>* stat_rob_entries = nullptr;
     Statistic<uint64_t>* stat_rob_cleared_entries = nullptr;
     Statistic<uint64_t>* stat_syscall_cycles = nullptr;

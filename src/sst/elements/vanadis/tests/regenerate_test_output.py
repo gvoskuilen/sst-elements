@@ -44,14 +44,22 @@ for root, names, files in os.walk(path_output):
         src_path = os.path.join(root, file)
 
         has_diff = False
+        complete = False
         if dst_path != "":
             with open(src_path) as src_file:
                 src_lines = src_file.readlines()
 
             with open(dst_path) as dst_file:
                 dst_lines = dst_file.readlines()
+            
+            if any("Simulation is complete" in line for line in src_lines):
+                complete = True
 
             has_diff = list(difflib.unified_diff(src_lines, dst_lines, src_path, dst_path, n=1))
         if has_diff:
+            if not complete:
+                print("Possible ERROR in {}, skip copy".format(src_path))
+                continue
+
             print("COPY {} --> {}".format(src_path, dst_path))
             shutil.copy(src_path, dst_path)

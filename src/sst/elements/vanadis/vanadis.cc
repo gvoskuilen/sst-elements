@@ -387,7 +387,8 @@ VanadisCore::VanadisCore(SST::ComponentId_t id, SST::Params& params) : Component
     stat_stores_issued        = registerStatistic<uint64_t>("stores_issued", "1");
     stat_branch_mispredicts   = registerStatistic<uint64_t>("branch_mispredicts", "1");
     stat_branches             = registerStatistic<uint64_t>("branches", "1");
-    stat_cycles               = registerStatistic<uint64_t>("cycles", "1");
+    stat_active_cycles        = registerStatistic<uint64_t>("active_cycles", "1");
+    stat_idle_cycles          = registerStatistic<uint64_t>("idle_cycles", "1");
     stat_rob_entries          = registerStatistic<uint64_t>("rob_slots_in_use", "1");
     stat_rob_cleared_entries  = registerStatistic<uint64_t>("rob_cleared_entries", "1");
     stat_syscall_cycles       = registerStatistic<uint64_t>("syscall-cycles", "1");
@@ -1373,7 +1374,7 @@ VanadisCore::tick(SST::Cycle_t cycle)
     const auto output_verbosity = output->getVerboseLevel();
     #endif
 
-    stat_cycles->addData(1);
+    stat_active_cycles->addData(1);
     ins_issued_this_cycle  = 0;
     ins_retired_this_cycle = 0;
     ins_decoded_this_cycle = 0;
@@ -2005,6 +2006,9 @@ VanadisCore::setup()
         assert(fp);
         checkpointLoad(fp);
     }
+
+    unregisterClock(clock_tc_, clock_handler_);
+    clock_off_ = true;
 }
 
 void
@@ -2254,11 +2258,13 @@ void VanadisCore::recvOSEvent(SST::Event* ev) {
 
     VanadisStartThreadFirstReq* os_req = dynamic_cast<VanadisStartThreadFirstReq*>(ev);
     if ( nullptr != os_req ) {
+        if ( clock_off_ ) enableClock();
         startThread( os_req->getThread(), os_req->getStackAddr(), os_req->getInstPtr() );
     } else { // Case 2
 
     VanadisStartThreadForkReq* req = dynamic_cast<VanadisStartThreadForkReq*>(ev);
     if ( nullptr != req ) {
+        if ( clock_off_ ) enableClock();
         startThreadFork( req );
     } else { // Case 3
 
@@ -2269,11 +2275,13 @@ void VanadisCore::recvOSEvent(SST::Event* ev) {
 
     VanadisStartThreadCloneReq* req = dynamic_cast<VanadisStartThreadCloneReq*>(ev);
     if ( nullptr != req ) {
+        if ( clock_off_ ) enableClock();
         startThreadClone( req );
     } else { // Case 5
 
     VanadisStartThreadClone3Req* req = dynamic_cast<VanadisStartThreadClone3Req*>(ev);
     if ( nullptr != req ) {
+        if ( clock_off_ ) enableClock();
         startThreadClone3( req );
     } else { // Case 6
 
@@ -2647,7 +2655,12 @@ VanadisCore::resetHwThread(uint32_t thr)
     #endif
 }
 
-
+void VanadisCore::enableClock()
+{
+    Cycle_t next_cycle = reregisterClock(clock_tc_, clock_handler_);
+    clock_off_ = false;
+    stat_idle_cycles->addDataNTimes(next_cycle - 1, 1);
+}
 
 // bool VanadisCore::judgeIns(VanadisInstruction* ins)
 // {

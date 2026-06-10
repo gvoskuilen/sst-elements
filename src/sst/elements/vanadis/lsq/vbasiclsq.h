@@ -70,10 +70,10 @@ class VanadisBasicLoadStoreQueue : public SST::Vanadis::VanadisLoadStoreQueue
                                     { "loads_executed", "Count the number of loads issued", "operations", 1 },
                                     { "stores_executed", "Count the number of stores issued", "operations", 1 },
                                     { "fences_executed", "Count the number of fences issued", "operations", 1},
-                                    { "operations_pending", "Count the number of operations which are held by the LSQ and not ready to be issued to the memory subsystem", "operations", 1},
-                                    { "loads_in_flight", "Count the number of loads which are in-flight", "operations", 1},
-                                    { "stores_in_flight", "Count the number of stores which are in-flight", "operations", 1},
-                                    { "store_buffer_entries", "Count the number of stores held in the store buffer", "operations", 1},
+                                    { "operations_pending", "Count the number of operations which are held by the LSQ and not ready to be issued to the memory subsystem each active cycle", "operations", 1},
+                                    { "loads_in_flight", "Count the number of loads which are in-flight each active cycle", "operations", 1},
+                                    { "stores_in_flight", "Count the number of stores which are in-flight each active cycle", "operations", 1},
+                                    { "store_buffer_entries", "Count the number of stores held in the store buffer each active cycle", "operations", 1},
                                     { "split_stores", "Count the number of stores which are fractured due to cache boundaries", "operations", 1},
                                     { "split_loads", "Count the number of loads which are fractured due to cache boundaries", "operations", 1})
 

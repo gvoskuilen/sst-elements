@@ -40,6 +40,7 @@ public:
     virtual void push(const uint64_t ins_addr, const uint64_t pred_addr) = 0;
     virtual uint64_t predictAddress(const uint64_t addr) = 0;
     virtual bool contains(const uint64_t addr) = 0;
+    virtual std::pair<bool, uint64_t> predictAddressIfAvailable(const uint64_t addr) = 0;
 };
 
 } // namespace Vanadis

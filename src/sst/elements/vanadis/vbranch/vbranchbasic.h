@@ -101,6 +101,18 @@ public:
         return found;
     }
 
+    virtual std::pair<bool, uint64_t> predictAddressIfAvailable(const uint64_t addr) {
+        auto itr = predict.find(addr);
+
+        if (itr != predict.end()) {
+            stat_branch_hits->addData(1);
+            return std::make_pair(true, itr->second);
+        } 
+
+        stat_branch_misses->addData(1);
+        return std::make_pair(false, 0);
+    }
+
 protected:
     void lru_reorder(const uint64_t addr) {
         for (auto lru_itr = lru_keeper.begin(); lru_itr != lru_keeper.end();) {

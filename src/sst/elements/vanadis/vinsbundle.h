@@ -28,36 +28,36 @@ namespace Vanadis {
 class VanadisInstructionBundle {
 
 public:
-    VanadisInstructionBundle(const uint64_t addr) : ins_addr(addr), pc_inc(4) { inst_bundle.reserve(1); }
+    VanadisInstructionBundle(const uint64_t addr) : ins_addr_(addr), pc_inc_(4) { inst_bundle_.reserve(1); }
 
     ~VanadisInstructionBundle() { clear(); }
 
     void clear() {
-        for (VanadisInstruction* next_ins : inst_bundle) {
+        for (VanadisInstruction* next_ins : inst_bundle_) {
             delete next_ins;
         }
 
-        inst_bundle.clear();
+        inst_bundle_.clear();
     }
 
-    uint32_t getInstructionCount() const { return inst_bundle.size(); }
+    uint32_t getInstructionCount() const { return inst_bundle_.size(); }
 
-    void addInstruction(VanadisInstruction* newIns) {
-        inst_bundle.push_back(newIns->clone());
+    void addInstruction(VanadisInstruction* ins) {
+        inst_bundle_.push_back(ins);
     }
 
     VanadisInstruction* getInstructionByIndex(const uint32_t index) {
-        return inst_bundle[index];
+        return inst_bundle_[index];
     }
 
-    uint64_t getInstructionAddress() const { return ins_addr; }
-	 uint64_t pcIncrement() const { return pc_inc; }
-	 void setPCIncrement(uint64_t newPCInc) { pc_inc = newPCInc; }
+    uint64_t getInstructionAddress() const { return ins_addr_; }
+    uint64_t pcIncrement() const { return pc_inc_; }
+    void setPCIncrement(uint64_t new_pc_inc) { pc_inc_ = new_pc_inc; }
 
 private:
-    const uint64_t ins_addr;
-	 uint64_t pc_inc;
-    std::vector<VanadisInstruction*> inst_bundle;
+    const uint64_t ins_addr_;
+    uint64_t pc_inc_;
+    std::vector<VanadisInstruction*> inst_bundle_;
 };
 
 } // namespace Vanadis

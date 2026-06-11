@@ -43,11 +43,8 @@ VanadisNodeOSComponent::VanadisNodeOSComponent(SST::ComponentId_t id, SST::Param
     const uint32_t mask = params.find<uint32_t>("dbgMask", 0);
 
     auto node = params.find<int>("node_id", 0); // Read as default 0 instead of -1 for tagging output_ only
-    char* output_prefix = (char*)malloc(sizeof(char) * 256);
-    snprintf(output_prefix, sizeof(char)*256, "[node%d-os]:@p():@l ", node);
-
+    std::string output_prefix = "[node" + std::to_string(node) + "-os]:@p():@l ";
     output_ = new SST::Output(output_prefix, verbosity, mask, Output::STDOUT);
-    free(output_prefix);
 
     checkpoint_dir_ = params.find<std::string>("checkpointDir", "");
     auto tmp = params.find<std::string>("checkpoint", "");

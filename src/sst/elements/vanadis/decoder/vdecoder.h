@@ -99,19 +99,11 @@ public:
         const size_t uop_cache_size          = params.find<size_t>("uop_cache_entries", 128);
         const size_t predecode_cache_entries = params.find<size_t>("predecode_cache_entries", 4);
 
-        ins_loader = new VanadisInstructionLoader(uop_cache_size, predecode_cache_entries, icache_line_width, output);
-
         const uint32_t loader_mode = params.find<uint32_t>("loader_mode", 0);
-        switch(loader_mode) {
-        case 0:
-            ins_loader->setLoaderMode(VanadisInstructionLoaderMode::LRU_CACHE_MODE);
-            break;
-        case 1:
-            ins_loader->setLoaderMode(VanadisInstructionLoaderMode::INFINITE_CACHE_MODE);
-            break;
-        default:
-            ins_loader->setLoaderMode(VanadisInstructionLoaderMode::LRU_CACHE_MODE);
-            break;
+        if (loader_mode == 1) {
+            ins_loader = new VanadisInstructionLoaderImpl<VanadisInstructionLoaderMode::INFINITE_CACHE_MODE>(uop_cache_size, predecode_cache_entries, icache_line_width, output);
+        } else {
+            ins_loader = new VanadisInstructionLoaderImpl<VanadisInstructionLoaderMode::LRU_CACHE_MODE>(uop_cache_size, predecode_cache_entries, icache_line_width, output);
         }
 
         branch_predictor = loadUserSubComponent<SST::Vanadis::VanadisBranchUnit>("branch_unit");
@@ -134,20 +126,18 @@ public:
 
         output_ = output;
 
-        stat_uop_hit          = registerStatistic<uint64_t>("uop_cache_hit", "1");
-        stat_predecode_hit    = registerStatistic<uint64_t>("predecode_cache_hit", "1");
-        stat_predecode_miss   = registerStatistic<uint64_t>("predecode_cache_miss", "1");
-        stat_uop_generated    = registerStatistic<uint64_t>("uops_generated", "1");
-        stat_decode_fault     = registerStatistic<uint64_t>("decode_faults", "1");
-        stat_ins_bytes_loaded = registerStatistic<uint64_t>("ins_bytes_loaded", "1");
-        stat_uop_delayed_rob_full = registerStatistic<uint64_t>("uop_delayed_rob_full", "1");
+        stat_uop_hit_          = registerStatistic<uint64_t>("uop_cache_hit", "1");
+        stat_predecode_hit_    = registerStatistic<uint64_t>("predecode_cache_hit", "1");
+        stat_predecode_miss_   = registerStatistic<uint64_t>("predecode_cache_miss", "1");
+        stat_uop_generated_    = registerStatistic<uint64_t>("uops_generated", "1");
+        stat_decode_fault_     = registerStatistic<uint64_t>("decode_faults", "1");
+        stat_ins_bytes_loaded_ = registerStatistic<uint64_t>("ins_bytes_loaded", "1");
+        stat_uop_delayed_rob_full_ = registerStatistic<uint64_t>("uop_delayed_rob_full", "1");
     }
 
     virtual ~VanadisDecoder()
     {
         delete ins_loader;
-        delete os_handler;
-        delete branch_predictor;
     }
 
     virtual void markLoadFencing() { canIssueLoads = false; }
@@ -228,7 +218,7 @@ public:
     void setThreadLocalStoragePointer(uint64_t new_tls) { tls_ptr = new_tls; }
 
     uint64_t getThreadLocalStoragePointer() const { return tls_ptr; }
-    uint64_t getCycleCount() const { return cycle_count; }
+    uint64_t getCycleCount() const { return cycle_count_; }
 
     // VanadisCircularQueue<VanadisInstruction*>* getDecodedQueue() { return
     // decoded_q; }
@@ -255,7 +245,7 @@ protected:
     uint32_t core;
 
     uint64_t tls_ptr;
-    uint64_t cycle_count;
+    uint64_t cycle_count_;
 
     bool                                       wantDelegatedLoad;
     VanadisCircularQueue<VanadisInstruction*>* thread_rob;
@@ -272,13 +262,13 @@ protected:
 
     SST::Output* output_;
 
-    Statistic<uint64_t>* stat_uop_hit;
-    Statistic<uint64_t>* stat_uop_delayed_rob_full;
-    Statistic<uint64_t>* stat_predecode_hit;
-    Statistic<uint64_t>* stat_predecode_miss;
-    Statistic<uint64_t>* stat_decode_fault;
-    Statistic<uint64_t>* stat_uop_generated;
-    Statistic<uint64_t>* stat_ins_bytes_loaded;
+    Statistic<uint64_t>* stat_uop_hit_;
+    Statistic<uint64_t>* stat_uop_delayed_rob_full_;
+    Statistic<uint64_t>* stat_predecode_hit_;
+    Statistic<uint64_t>* stat_predecode_miss_;
+    Statistic<uint64_t>* stat_decode_fault_;
+    Statistic<uint64_t>* stat_uop_generated_;
+    Statistic<uint64_t>* stat_ins_bytes_loaded_;
 };
 
 

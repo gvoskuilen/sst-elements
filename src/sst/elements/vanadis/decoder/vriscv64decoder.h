@@ -87,8 +87,7 @@ public:
     const VanadisDecoderOptions* getDecoderOptions() const override { return options; }
     VanadisFPRegisterMode        getFPRegisterMode() const override { return VANADIS_REGISTER_MODE_FP64; }
 
-    void setStackPointer( VanadisISATable* isa_tbl,
-	VanadisRegisterFile* regFile, const uint64_t start_stack_address ) override;
+    void setStackPointer( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t start_stack_address ) override;
 
     void setArg1Register( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t value ) override;
 

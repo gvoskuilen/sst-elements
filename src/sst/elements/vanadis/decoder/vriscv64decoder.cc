@@ -59,7 +59,7 @@ void VanadisRISCV64Decoder::setStackPointer( VanadisISATable* isa_tbl, VanadisRe
 void VanadisRISCV64Decoder::setArg1Register( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t value )
 {
     #ifdef VANADIS_BUILD_DEBUG
-    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "-> Setting argument 1 register to (64B-aligned):          %" PRIu64 " / 0x%0" PRI_ADDR "\n", value, value);
+    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "-> Setting argument 1 register to (64B-aligned): %" PRIu64 " / 0x%0" PRI_ADDR "\n", value, value);
     #endif
     
     const int16_t sp_phys_reg = isa_tbl->getIntPhysReg(10);
@@ -74,7 +74,7 @@ void VanadisRISCV64Decoder::setArg1Register( VanadisISATable* isa_tbl, VanadisRe
 void VanadisRISCV64Decoder::setReturnRegister( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t value )
 {
     #ifdef VANADIS_BUILD_DEBUG
-    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "-> Setting register 10 to (64B-aligned):          %" PRIu64 " / 0x%0" PRI_ADDR "\n", value, value);
+    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "-> Setting register 10 to (64B-aligned): %" PRIu64 " / 0x%0" PRI_ADDR "\n", value, value);
     #endif
     
     const int16_t sp_phys_reg = isa_tbl->getIntPhysReg(10);
@@ -90,7 +90,7 @@ void VanadisRISCV64Decoder::setReturnRegister( VanadisISATable* isa_tbl, Vanadis
 void VanadisRISCV64Decoder::setThreadPointer( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t value )
 {
     #ifdef VANADIS_BUILD_DEBUG
-    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "-> Setting thread pointer to (64B-aligned):          %" PRIu64 " / 0x%0" PRI_ADDR "\n", value, value);
+    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "-> Setting thread pointer to (64B-aligned): %" PRIu64 " / 0x%0" PRI_ADDR "\n", value, value);
     #endif
     
     const int16_t sp_phys_reg = isa_tbl->getIntPhysReg(4);
@@ -110,177 +110,162 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
     }
     #endif
 
-    cycle_count = cycle;
+    cycle_count_ = cycle;
+
+    if ( thread_rob->full() ) {
+        #ifdef VANADIS_BUILD_DEBUG
+        output_->verbose(CALL_INFO, 16, 0, "---> Decode pending queue (ROB) is full, no decodes permitted this cycle.\n");
+        output_->verbose(CALL_INFO, 16, 0, "---> cycle is completed, ip=0x%" PRI_ADDR "\n", ip);
+        #endif
+        return false;
+    }
 
     bool success = false;
-    if ( ! thread_rob->full() ) {
-        if ( ins_loader->hasBundleAt(ip) ) {
-            // We have the instruction in our micro-op cache
-            stat_uop_hit->addData(1);
 
-            VanadisInstructionBundle* bundle = ins_loader->getBundleAt(ip);
+    VanadisInstructionBundle* bundle = ins_loader->getBundleAt(ip);
+    if ( bundle ) {
+        // We have the instruction in our micro-op cache
+        stat_uop_hit_->addData(1);
 
-            #ifdef VANADIS_BUILD_DEBUG
-            if (output_->getVerboseLevel() >= 16) {
-                output_->verbose(
-                    CALL_INFO, 16, 0, "----> Found uop bundle for ip=0x%" PRI_ADDR " with %" PRIu32 " entries. Loading from cache...\n",
-                    ip,
-                    bundle->getInstructionCount());
-            }
-            #endif
+        #ifdef VANADIS_BUILD_DEBUG
+        if (output_->getVerboseLevel() >= 16) {
+            output_->verbose(
+                CALL_INFO, 16, 0, "----> Found uop bundle for ip=0x%" PRI_ADDR " with %" PRIu32 " entries. Loading from cache...\n",
+                ip, bundle->getInstructionCount());
+        }
+        #endif
 
-            // Do we have enough space in the ROB to push the micro-op bundle into
-            // the queue?
-            if ( bundle->getInstructionCount() < (thread_rob->capacity() - thread_rob->size()) ) {
-                bool bundle_has_branch = false;
+        // Do we have enough space in the ROB to push the micro-op bundle into the queue?
+        if ( bundle->getInstructionCount() < (thread_rob->capacity() - thread_rob->size()) ) {
+            bool bundle_has_branch = false;
 
-                for ( uint32_t i = 0; i < bundle->getInstructionCount(); ++i ) {
-                    VanadisInstruction* next_ins = bundle->getInstructionByIndex(i);
+            for ( uint32_t i = 0; i < bundle->getInstructionCount(); ++i ) {
+                VanadisInstruction* next_ins = bundle->getInstructionByIndex(i);
 
-                    if ( next_ins->getInstFuncType() == INST_BRANCH ) {
-                        VanadisSpeculatedInstruction* next_spec_ins =
-                            dynamic_cast<VanadisSpeculatedInstruction*>(next_ins);
+                if ( next_ins->getInstFuncType() == INST_BRANCH ) {
+                    VanadisSpeculatedInstruction* next_spec_ins =
+                        dynamic_cast<VanadisSpeculatedInstruction*>(next_ins);
 
-                        bundle_has_branch = true;
-                        auto [ predicted, predicted_address ] = branch_predictor->predictAddressIfAvailable(ip);
-                        if ( predicted ) {
-                            // We have an address predicton from the branching unit
-                            next_spec_ins->setSpeculatedAddress(predicted_address);
-
-                                #ifdef VANADIS_BUILD_DEBUG
-                                if(output_->getVerboseLevel() >= 16) {
-                                    output_->verbose(
-                                        CALL_INFO, 16, 0,
-                                        "----> contains a branch: 0x%" PRI_ADDR " / predicted "
-                                        "(found in predictor): 0x%" PRI_ADDR "\n",
-                                        ip, predicted_address);
-                                }
-                                #endif
-
-                                ip                = predicted_address;
-                        }
-                        else {
-                            // We don't have an address prediction
-                            // so just speculate that we are going to drop through to the
-                            // next instruction as we aren't sure where this will go yet
+                    bundle_has_branch = true;
+                    auto [ predicted, predicted_address ] = branch_predictor->predictAddressIfAvailable(ip);
+                    if ( predicted ) {
+                        // We have an address predicton from the branching unit
+                        next_spec_ins->setSpeculatedAddress(predicted_address);
 
                             #ifdef VANADIS_BUILD_DEBUG
                             if(output_->getVerboseLevel() >= 16) {
-                                output_->verbose(
-                                    CALL_INFO, 16, 0,
-                                    "----> contains a branch: 0x%" PRI_ADDR " / predicted "
-                                    "(not-found in predictor): 0x%" PRI_ADDR ", pc-increment: %" PRIu64 "\n",
-                                    ip, ip + 4, bundle->pcIncrement());
+                                output_->verbose(CALL_INFO, 16, 0,
+                                    "----> contains a branch: 0x%" PRI_ADDR " / predicted (found in predictor): 0x%" PRI_ADDR "\n",
+                                    ip, predicted_address);
                             }
                             #endif
 
-                            ip += bundle->pcIncrement();
-                            next_spec_ins->setSpeculatedAddress(ip);
-                        }
+                            ip = predicted_address;
                     }
+                    else {
+                        // We don't have an address prediction so just speculate that we are going to drop through to the
+                        // next instruction as we aren't sure where this will go yet
 
-                    thread_rob->push(next_ins->clone());
+                        #ifdef VANADIS_BUILD_DEBUG
+                        if(output_->getVerboseLevel() >= 16) {
+                            output_->verbose(
+                                CALL_INFO, 16, 0,
+                                "----> contains a branch: 0x%" PRI_ADDR " / predicted "
+                                "(not-found in predictor): 0x%" PRI_ADDR ", pc-increment: %" PRIu64 "\n",
+                                ip, ip + 4, bundle->pcIncrement());
+                        }
+                        #endif
+
+                        ip += bundle->pcIncrement();
+                        next_spec_ins->setSpeculatedAddress(ip);
+                    }
                 }
 
-                // Move to the next address, if we had a branch we should have
-                // already found a predicted target addeess to decode
-                #ifdef VANADIS_BUILD_DEBUG
-                if(output_->getVerboseLevel() >= 16) {
-                    output_->verbose(
-                        CALL_INFO, 16,0, "----> branch? %s, ip=0x%" PRI_ADDR " + inc=%" PRIu64 " = new-ip=0x%" PRI_ADDR "\n",
-                        bundle_has_branch ? "yes" : "no", ip, bundle_has_branch ? 0 : bundle->pcIncrement(),
-                        bundle_has_branch ? ip : ip + bundle->pcIncrement());
-                }
-                #endif
+                thread_rob->push(next_ins->clone());
+            }
 
-                ip = bundle_has_branch ? ip : ip + bundle->pcIncrement();
-                success = true;
-            }
-            else {
-                #ifdef VANADIS_BUILD_DEBUG
-                output_->verbose(
-                    CALL_INFO, 16, 0, "----> Not enough space in the ROB, will stall this cycle.\n");
-                #endif
-                stat_uop_delayed_rob_full->addData(1);
-            }
-        }
-        else if ( ins_loader->hasPredecodeAt(ip, 4) ) {
-            // We have a loaded instruction cache line but have not decoded it yet
+            // Move to the next address, if we had a branch we should have
+            // already found a predicted target addeess to decode
             #ifdef VANADIS_BUILD_DEBUG
             if(output_->getVerboseLevel() >= 16) {
                 output_->verbose(
-                    CALL_INFO, 16, 0,
-                    "---> uop not found, but is located in the predecode "
-                    "i0-icache (ip=0x%" PRI_ADDR ")\n",
-                    ip);
+                    CALL_INFO, 16,0, "----> branch? %s, ip=0x%" PRI_ADDR " + inc=%" PRIu64 " = new-ip=0x%" PRI_ADDR "\n",
+                    bundle_has_branch ? "yes" : "no", ip, bundle_has_branch ? 0 : bundle->pcIncrement(),
+                    bundle_has_branch ? ip : ip + bundle->pcIncrement());
             }
             #endif
 
-            VanadisInstructionBundle* decoded_bundle = new VanadisInstructionBundle(ip);
-            stat_predecode_hit->addData(1);
-
-            uint32_t temp_ins = 0;
-
-            const bool predecode_bytes =
-                ins_loader->getPredecodeBytes(ip, (uint8_t*)&temp_ins, sizeof(temp_ins));
-
-            if ( LIKELY(predecode_bytes) ) {
-                #ifdef VANADIS_BUILD_DEBUG
-                output_->verbose(CALL_INFO, 16, 0, "---> performing a decode for ip=0x%" PRI_ADDR "\n", ip);
-                #endif
-
-                decode(ip, temp_ins, decoded_bundle);
-
-                #ifdef VANADIS_BUILD_DEBUG
-                if(output_->getVerboseLevel() >= 16) {
-                    output_->verbose(
-                        CALL_INFO, 16, 0, "---> bundle generates %" PRIu32 " micro-ops\n",
-                        (uint32_t)decoded_bundle->getInstructionCount());
-                }
-                #endif
-
-                ins_loader->cacheDecodedBundle(decoded_bundle);
-
-                if ( 0 == decoded_bundle->getInstructionCount() ) {
-                    output_->fatal(CALL_INFO, -1, "Error - bundle at: 0x%" PRI_ADDR " generates no micro-ops.\n", ip);
-                }
-            }
-            else {
-                output_->fatal(
-                    CALL_INFO, -1,
-                    "Error - predecoded bytes for 0x%" PRIu64 " found, but "
-                    "retrieval of bytes failed.\n", ip);
-            }
+            ip = bundle_has_branch ? ip : ip + bundle->pcIncrement();
             success = true;
         }
-        else if (!ins_loader->pendingLoad(ip, 4)) {
-            // Not in micro or predecode cache, so we have to regenerate a request
-            // and stop further processing
+        else {
             #ifdef VANADIS_BUILD_DEBUG
-            if(output_->getVerboseLevel() >= 16) {
-                output_->verbose(
-                    CALL_INFO, 16, 0,
-                    "---> microop bundle and pre-decoded bytes are not found for "
-                    "0x%" PRI_ADDR ", requested read for cache line (line=%" PRIu64 ")\n",
-                    ip, ins_loader->getCacheLineWidth());
-            }
+            output_->verbose(CALL_INFO, 16, 0, "----> Not enough space in the ROB, will stall this cycle.\n");
             #endif
-            ins_loader->requestLoadAt(ip, 4);
-            stat_ins_bytes_loaded->addData(4);
-            stat_predecode_miss->addData(1);
-            success = true;
+            stat_uop_delayed_rob_full_->addData(1);
         }
     }
+    else if ( ins_loader->hasPredecodeAt(ip, 4) ) {
+        // We have a loaded instruction cache line but have not decoded it yet
+        #ifdef VANADIS_BUILD_DEBUG
+        if(output_->getVerboseLevel() >= 16) {
+            output_->verbose(CALL_INFO, 16, 0,
+                "---> uop not found, but is located in the predecode i0-icache (ip=0x%" PRI_ADDR ")\n", ip);
+        }
+        #endif
+
+        VanadisInstructionBundle* decoded_bundle = new VanadisInstructionBundle(ip);
+        stat_predecode_hit_->addData(1);
+
+        uint32_t temp_ins = 0;
+
+        const bool predecode_bytes =
+            ins_loader->getPredecodeBytes(ip, (uint8_t*)&temp_ins, sizeof(temp_ins));
+
+        if ( LIKELY(predecode_bytes) ) {
+            #ifdef VANADIS_BUILD_DEBUG
+            output_->verbose(CALL_INFO, 16, 0, "---> performing a decode for ip=0x%" PRI_ADDR "\n", ip);
+            #endif
+
+            decode(ip, temp_ins, decoded_bundle);
+
+            #ifdef VANADIS_BUILD_DEBUG
+            if(output_->getVerboseLevel() >= 16) {
+                output_->verbose(CALL_INFO, 16, 0, 
+                    "---> bundle generates %" PRIu32 " micro-ops\n", (uint32_t)decoded_bundle->getInstructionCount());
+            }
+            #endif
+
+            ins_loader->cacheDecodedBundle(decoded_bundle);
+
+            if ( 0 == decoded_bundle->getInstructionCount() ) {
+                output_->fatal(CALL_INFO, -1, "Error - bundle at: 0x%" PRI_ADDR " generates no micro-ops.\n", ip);
+            }
+        }
+        else {
+            output_->fatal(CALL_INFO, -1,
+                "Error - predecoded bytes for 0x%" PRIu64 " found, but retrieval of bytes failed.\n", ip);
+        }
+        success = true;
+    }
+    else if (!ins_loader->pendingLoad(ip, 4)) {
+        // Not in micro or predecode cache, so we have to regenerate a request and stop further processing
+        #ifdef VANADIS_BUILD_DEBUG
+        if(output_->getVerboseLevel() >= 16) {
+            output_->verbose(CALL_INFO, 16, 0,
+                "---> microop bundle and pre-decoded bytes are not found for 0x%" PRI_ADDR ", requested read for cache line (line=%" PRIu64 ")\n",
+                ip, ins_loader->getCacheLineWidth());
+        }
+        #endif
+        ins_loader->requestLoadAt(ip, 4);
+        stat_ins_bytes_loaded_->addData(4);
+        stat_predecode_miss_->addData(1);
+        success = true;
+    }
+
     #ifdef VANADIS_BUILD_DEBUG
-    else {
-        output_->verbose(
-            CALL_INFO, 16, 0,
-            "---> Decode pending queue (ROB) is full, no more "
-            "decodes permitted this cycle.\n");
-    }
-
-    if(output_->getVerboseLevel() >= 16) {
-        output_->verbose(CALL_INFO, 16, 0, "---> cycle is completed, ip=0x%" PRI_ADDR "\n", ip);
+    if (output_->getVerboseLevel() >= 16) {
+        output_->verbose(CALL_INFO, 16, 0, "---> decode execute completed, ip=0x%" PRI_ADDR "\n", ip);
     }
     #endif
     return success;

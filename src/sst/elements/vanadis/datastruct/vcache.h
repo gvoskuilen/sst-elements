@@ -30,116 +30,97 @@ enum class VanadisCacheRecordDeletion {
     VANADIS_PERFORM_DELETE_ARRAY
 };
 
-template <typename I, typename T, SST::Vanadis::VanadisCacheRecordDeletion D> class VanadisCache {
-public:
-    VanadisCache(const size_t cache_entries) : max_entries(cache_entries) { reset(); }
+template <typename I, typename T, SST::Vanadis::VanadisCacheRecordDeletion D>
+class VanadisCache {
 
-    ~VanadisCache() {
-        clear();
+    // Cache entry type
+    using ListIt = typename std::list<I>::iterator;
+    struct Entry {
+        T* value;
+        ListIt lru_it;
+    };
+
+public:
+    VanadisCache(const size_t cache_entries) : max_entries_(cache_entries) {
+        data_values_.reserve(max_entries_);
     }
 
+    ~VanadisCache() { clear(); }
+
     void clear() {
-        for (auto val_itr = data_values.begin(); val_itr != data_values.end(); val_itr++ ) {
-            switch(D) {
-                case SST::Vanadis::VanadisCacheRecordDeletion::VANADIS_PERFORM_DELETE:
-                {
-                    delete val_itr->second;
-                } break;
-                case SST::Vanadis::VanadisCacheRecordDeletion::VANADIS_PERFORM_DELETE_ARRAY:
-                {
-                    delete[] val_itr->second;
-                } break;
-                case SST::Vanadis::VanadisCacheRecordDeletion::VANADIS_NO_DELETION:
-                {} break;
-            }
+        for ( auto& kv : data_values_ ) {
+            destroy(kv.second.value);
         }
 
-        ordering_q.clear();
-        data_values.clear();
+        lru_.clear();
+        data_values_.clear();
     }
 
     void reset() {
         clear();
-        data_values.reserve(max_entries);
+        data_values_.reserve(max_entries_);
     }
 
-    bool contains(const I& value) const { return (data_values.find(value) != data_values.end()); }
+    bool contains(const I& value) const { return (data_values_.find(value) != data_values_.end()); }
 
-    T find(const I& key) {
-        send_key_to_front(key);
-        return data_values.find(key)->second;
+    T* find(const I& key) {
+        auto it = data_values_.find(key);
+        if (it == data_values_.end()) return nullptr;
+        lru_.splice(lru_.begin(), lru_, it->second.lru_it);
+        return it->second.value;
     }
 
-    void store(const I& key, T value) {
-        if (LIKELY(contains(key))) {
-            send_key_to_front(key);
-	        data_values[key] = value;
-        } else {
-            kill_lru_key();
-            data_values.insert(std::pair<I, T>(key, value));
-            ordering_q.push_front(key);
-        }
-    }
+    void store(const I& key, T* value) {
+        auto it = data_values_.find(key);
 
-    void touch(const I& key) {
-        if (LIKELY(contains(key))) {
-            send_key_to_front(key);
-        }
-    }
-
-    size_t size() const { return data_values.size(); }
-    size_t capacity() const { return max_entries; }
-
-private:
-    void kill_lru_key() {
-        // if we aren't full yet, then keep entries otherwise we will
-        // throw away
-        if (UNLIKELY(ordering_q.size() < max_entries)) {
+        if ( LIKELY(it != data_values_.end()) ) {
+            lru_.splice(lru_.begin(), lru_, it->second.lru_it);
+            destroy(it->second.value);
+            it->second.value = value;
             return;
         }
 
-        const I remove_key = ordering_q.back();
-        ordering_q.pop_back();
-
-        auto find_key = data_values.find(remove_key);
-
-        switch(D) {
-            case SST::Vanadis::VanadisCacheRecordDeletion::VANADIS_PERFORM_DELETE:
-            {
-                delete find_key->second;
-            } break;
-            case SST::Vanadis::VanadisCacheRecordDeletion::VANADIS_PERFORM_DELETE_ARRAY:
-            {
-                delete[] find_key->second;
-            } break;
-            case SST::Vanadis::VanadisCacheRecordDeletion::VANADIS_NO_DELETION:
-            {} break;
-        }
-
-        data_values.erase(find_key);
+        makeSpace();
+        lru_.push_front(key);
+        data_values_.emplace(key, Entry{value, lru_.begin()});
     }
 
-    void send_key_to_front(const I& key) {
-        bool found_key = false;
+    bool touch(const I& key) {
+        auto it = data_values_.find(key);
+        if (it == data_values_.end()) return false;
+        lru_.splice(lru_.begin(), lru_, it->second.lru_it);
+        return true;
+    }
 
-        for (auto order_itr = ordering_q.begin(); order_itr != ordering_q.end();) {
-            if (UNLIKELY(key == (*order_itr))) {
-                ordering_q.erase(order_itr);
-                found_key = true;
-                break;
-            } else {
-                order_itr++;
-            }
+    size_t size() const { return data_values_.size(); }
+    size_t capacity() const { return max_entries_; }
+
+private:
+    void makeSpace() {
+        // if we aren't full yet, then keep entries otherwise we will throw away
+        if ( UNLIKELY(lru_.size() < max_entries_) ) {
+            return;
         }
 
-        if (LIKELY(found_key)) {
-            ordering_q.push_front(key);
+        const I& remove_key = lru_.back();
+        auto it = data_values_.find(remove_key);
+        destroy(it->second.value);
+
+        data_values_.erase(it);
+        lru_.pop_back();
+    }
+
+    static void destroy(T*& value) {
+        if constexpr( D == VanadisCacheRecordDeletion::VANADIS_PERFORM_DELETE ) {
+            delete value;
+        } else if constexpr ( D == VanadisCacheRecordDeletion::VANADIS_PERFORM_DELETE_ARRAY ) {
+            delete [] value;
         }
     }
 
-    const size_t max_entries;
-    std::list<I> ordering_q;
-    std::unordered_map<I, T> data_values;
+    const size_t max_entries_;
+    std::list<I> lru_;
+    std::unordered_map<I, Entry> data_values_;
 };
 
 } // namespace Vanadis

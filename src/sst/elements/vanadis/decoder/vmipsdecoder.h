@@ -17,6 +17,7 @@
 #define _H_VANADIS_MIPS_DECODER
 
 #include "decoder/vdecoder.h"
+#include "os/vmipscpuos.h"
 
 #define MIPS_REG_ZERO 0
 #define MIPS_REG_LO   32
@@ -270,12 +271,12 @@ public:
 
     ~VanadisMIPSDecoder();
 
-    virtual const char*                  getISAName() const { return "MIPS"; }
-    virtual uint16_t                     countISAIntReg() const { return options->countISAIntRegisters(); }
-    virtual uint16_t                     countISAFPReg() const { return options->countISAFPRegisters(); }
-    virtual const VanadisDecoderOptions* getDecoderOptions() const { return options; }
+    const char*                  getISAName() const override { return "MIPS"; }
+    uint16_t                     countISAIntReg() const override { return options_->countISAIntRegisters(); }
+    uint16_t                     countISAFPReg() const override { return options_->countISAFPRegisters(); }
+    const VanadisDecoderOptions* getDecoderOptions() const override { return options_; }
 
-    virtual VanadisFPRegisterMode getFPRegisterMode() const { return VANADIS_REGISTER_MODE_FP32; }
+    VanadisFPRegisterMode getFPRegisterMode() const override { return VANADIS_REGISTER_MODE_FP32; }
 
     void setStackPointer( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t start_stack_address ) override;
 
@@ -295,109 +296,110 @@ private:
 
     void extract_three_regs(const uint32_t ins, uint16_t* rt, uint16_t* rs, uint16_t* rd) const
     {
-    (*rt) = (ins & MIPS_RT_MASK) >> 16;
-    (*rs) = (ins & MIPS_RS_MASK) >> 21;
-    (*rd) = (ins & MIPS_RD_MASK) >> 11;
+        (*rt) = (ins & MIPS_RT_MASK) >> 16;
+        (*rs) = (ins & MIPS_RS_MASK) >> 21;
+        (*rd) = (ins & MIPS_RD_MASK) >> 11;
     }
 
     void extract_fp_regs(const uint32_t ins, uint16_t* fr, uint16_t* ft, uint16_t* fs, uint16_t* fd) const
     {
-    (*fr) = (ins & MIPS_FR_MASK) >> 21;
-    (*ft) = (ins & MIPS_FT_MASK) >> 16;
-    (*fs) = (ins & MIPS_FS_MASK) >> 11;
-    (*fd) = (ins & MIPS_FD_MASK) >> 6;
+        (*fr) = (ins & MIPS_FR_MASK) >> 21;
+        (*ft) = (ins & MIPS_FT_MASK) >> 16;
+        (*fs) = (ins & MIPS_FS_MASK) >> 11;
+        (*fd) = (ins & MIPS_FD_MASK) >> 6;
     }
 
     void decode( const uint64_t ins_addr, const uint32_t next_ins, VanadisInstructionBundle* bundle );
 
-    const VanadisDecoderOptions* options;
+    const VanadisDecoderOptions* options_;
 
-    bool haltOnDecodeZero;
+    bool halt_on_decode_zero_;
 
-    Statistic<uint64_t>* stat_decode_add;
-    Statistic<uint64_t>* stat_decode_addu;
-    Statistic<uint64_t>* stat_decode_and;
-    Statistic<uint64_t>* stat_decode_dadd;
-    Statistic<uint64_t>* stat_decode_daddu;
-    Statistic<uint64_t>* stat_decode_ddiv;
-    Statistic<uint64_t>* stat_decode_div;
-    Statistic<uint64_t>* stat_decode_divu;
-    Statistic<uint64_t>* stat_decode_dmult;
-    Statistic<uint64_t>* stat_decode_dmultu;
-    Statistic<uint64_t>* stat_decode_dsllv;
-    Statistic<uint64_t>* stat_decode_dsrav;
-    Statistic<uint64_t>* stat_decode_dsrlv;
-    Statistic<uint64_t>* stat_decode_dsub;
-    Statistic<uint64_t>* stat_decode_dsubu;
-    Statistic<uint64_t>* stat_decode_jr;
-    Statistic<uint64_t>* stat_decode_jalr;
-    Statistic<uint64_t>* stat_decode_mfhi;
-    Statistic<uint64_t>* stat_decode_mflo;
-    Statistic<uint64_t>* stat_decode_mult;
-    Statistic<uint64_t>* stat_decode_multu;
-    Statistic<uint64_t>* stat_decode_nor;
-    Statistic<uint64_t>* stat_decode_or;
-    Statistic<uint64_t>* stat_decode_sllv;
-    Statistic<uint64_t>* stat_decode_slt;
-    Statistic<uint64_t>* stat_decode_sltu;
-    Statistic<uint64_t>* stat_decode_srav;
-    Statistic<uint64_t>* stat_decode_srlv;
-    Statistic<uint64_t>* stat_decode_sub;
-    Statistic<uint64_t>* stat_decode_subu;
-    Statistic<uint64_t>* stat_decode_syscall;
-    Statistic<uint64_t>* stat_decode_sync;
-    Statistic<uint64_t>* stat_decode_xor;
-    Statistic<uint64_t>* stat_decode_sll;
-    Statistic<uint64_t>* stat_decode_srl;
-    Statistic<uint64_t>* stat_decode_sra;
-    Statistic<uint64_t>* stat_decode_bltz;
-    Statistic<uint64_t>* stat_decode_bgezal;
-    Statistic<uint64_t>* stat_decode_bgez;
-    Statistic<uint64_t>* stat_decode_lui;
-    Statistic<uint64_t>* stat_decode_lb;
-    Statistic<uint64_t>* stat_decode_lbu;
-    Statistic<uint64_t>* stat_decode_lhu;
-    Statistic<uint64_t>* stat_decode_lh;
-    Statistic<uint64_t>* stat_decode_lw;
-    Statistic<uint64_t>* stat_decode_lfp32;
-    Statistic<uint64_t>* stat_decode_ll;
-    Statistic<uint64_t>* stat_decode_lwl;
-    Statistic<uint64_t>* stat_decode_lwr;
-    Statistic<uint64_t>* stat_decode_sb;
-    Statistic<uint64_t>* stat_decode_sc;
-    Statistic<uint64_t>* stat_decode_sw;
-    Statistic<uint64_t>* stat_decode_sh;
-    Statistic<uint64_t>* stat_decode_sfp32;
-    Statistic<uint64_t>* stat_decode_swr;
-    Statistic<uint64_t>* stat_decode_swl;
-    Statistic<uint64_t>* stat_decode_addiu;
-    Statistic<uint64_t>* stat_decode_beq;
-    Statistic<uint64_t>* stat_decode_bgtz;
-    Statistic<uint64_t>* stat_decode_blez;
-    Statistic<uint64_t>* stat_decode_bne;
-    Statistic<uint64_t>* stat_decode_slti;
-    Statistic<uint64_t>* stat_decode_sltiu;
-    Statistic<uint64_t>* stat_decode_andi;
-    Statistic<uint64_t>* stat_decode_ori;
-    Statistic<uint64_t>* stat_decode_j;
-    Statistic<uint64_t>* stat_decode_jal;
-    Statistic<uint64_t>* stat_decode_xori;
-    Statistic<uint64_t>* stat_decode_rdhwr;
-    Statistic<uint64_t>* stat_decode_cop1_mtc;
-    Statistic<uint64_t>* stat_decode_cop1_mfc;
-    Statistic<uint64_t>* stat_decode_cop1_cf;
-    Statistic<uint64_t>* stat_decode_cop1_ct;
-    Statistic<uint64_t>* stat_decode_cop1_mov;
-    Statistic<uint64_t>* stat_decode_cop1_mul;
-    Statistic<uint64_t>* stat_decode_cop1_div;
-    Statistic<uint64_t>* stat_decode_cop1_sub;
-    Statistic<uint64_t>* stat_decode_cop1_cvts;
-    Statistic<uint64_t>* stat_decode_cop1_cvtd;
-    Statistic<uint64_t>* stat_decode_cop1_cvtw;
-    Statistic<uint64_t>* stat_decode_cop1_lt;
-    Statistic<uint64_t>* stat_decode_cop1_ult;
-    Statistic<uint64_t>* stat_decode_cop1_lte;
-    Statistic<uint64_t>* stat_decode_cop1_eq;
+    // Statistics to track the number of decodes by instruction
+    Statistic<uint64_t>* stat_decode_add_;
+    Statistic<uint64_t>* stat_decode_addu_;
+    Statistic<uint64_t>* stat_decode_and_;
+    Statistic<uint64_t>* stat_decode_dadd_;
+    Statistic<uint64_t>* stat_decode_daddu_;
+    Statistic<uint64_t>* stat_decode_ddiv_;
+    Statistic<uint64_t>* stat_decode_div_;
+    Statistic<uint64_t>* stat_decode_divu_;
+    Statistic<uint64_t>* stat_decode_dmult_;
+    Statistic<uint64_t>* stat_decode_dmultu_;
+    Statistic<uint64_t>* stat_decode_dsllv_;
+    Statistic<uint64_t>* stat_decode_dsrav_;
+    Statistic<uint64_t>* stat_decode_dsrlv_;
+    Statistic<uint64_t>* stat_decode_dsub_;
+    Statistic<uint64_t>* stat_decode_dsubu_;
+    Statistic<uint64_t>* stat_decode_jr_;
+    Statistic<uint64_t>* stat_decode_jalr_;
+    Statistic<uint64_t>* stat_decode_mfhi_;
+    Statistic<uint64_t>* stat_decode_mflo_;
+    Statistic<uint64_t>* stat_decode_mult_;
+    Statistic<uint64_t>* stat_decode_multu_;
+    Statistic<uint64_t>* stat_decode_nor_;
+    Statistic<uint64_t>* stat_decode_or_;
+    Statistic<uint64_t>* stat_decode_sllv_;
+    Statistic<uint64_t>* stat_decode_slt_;
+    Statistic<uint64_t>* stat_decode_sltu_;
+    Statistic<uint64_t>* stat_decode_srav_;
+    Statistic<uint64_t>* stat_decode_srlv_;
+    Statistic<uint64_t>* stat_decode_sub_;
+    Statistic<uint64_t>* stat_decode_subu_;
+    Statistic<uint64_t>* stat_decode_syscall_;
+    Statistic<uint64_t>* stat_decode_sync_;
+    Statistic<uint64_t>* stat_decode_xor_;
+    Statistic<uint64_t>* stat_decode_sll_;
+    Statistic<uint64_t>* stat_decode_srl_;
+    Statistic<uint64_t>* stat_decode_sra_;
+    Statistic<uint64_t>* stat_decode_bltz_;
+    Statistic<uint64_t>* stat_decode_bgezal_;
+    Statistic<uint64_t>* stat_decode_bgez_;
+    Statistic<uint64_t>* stat_decode_lui_;
+    Statistic<uint64_t>* stat_decode_lb_;
+    Statistic<uint64_t>* stat_decode_lbu_;
+    Statistic<uint64_t>* stat_decode_lhu_;
+    Statistic<uint64_t>* stat_decode_lh_;
+    Statistic<uint64_t>* stat_decode_lw_;
+    Statistic<uint64_t>* stat_decode_lfp32_;
+    Statistic<uint64_t>* stat_decode_ll_;
+    Statistic<uint64_t>* stat_decode_lwl_;
+    Statistic<uint64_t>* stat_decode_lwr_;
+    Statistic<uint64_t>* stat_decode_sb_;
+    Statistic<uint64_t>* stat_decode_sc_;
+    Statistic<uint64_t>* stat_decode_sw_;
+    Statistic<uint64_t>* stat_decode_sh_;
+    Statistic<uint64_t>* stat_decode_sfp32_;
+    Statistic<uint64_t>* stat_decode_swr_;
+    Statistic<uint64_t>* stat_decode_swl_;
+    Statistic<uint64_t>* stat_decode_addiu_;
+    Statistic<uint64_t>* stat_decode_beq_;
+    Statistic<uint64_t>* stat_decode_bgtz_;
+    Statistic<uint64_t>* stat_decode_blez_;
+    Statistic<uint64_t>* stat_decode_bne_;
+    Statistic<uint64_t>* stat_decode_slti_;
+    Statistic<uint64_t>* stat_decode_sltiu_;
+    Statistic<uint64_t>* stat_decode_andi_;
+    Statistic<uint64_t>* stat_decode_ori_;
+    Statistic<uint64_t>* stat_decode_j_;
+    Statistic<uint64_t>* stat_decode_jal_;
+    Statistic<uint64_t>* stat_decode_xori_;
+    Statistic<uint64_t>* stat_decode_rdhwr_;
+    Statistic<uint64_t>* stat_decode_cop1_mtc_;
+    Statistic<uint64_t>* stat_decode_cop1_mfc_;
+    Statistic<uint64_t>* stat_decode_cop1_cf_;
+    Statistic<uint64_t>* stat_decode_cop1_ct_;
+    Statistic<uint64_t>* stat_decode_cop1_mov_;
+    Statistic<uint64_t>* stat_decode_cop1_mul_;
+    Statistic<uint64_t>* stat_decode_cop1_div_;
+    Statistic<uint64_t>* stat_decode_cop1_sub_;
+    Statistic<uint64_t>* stat_decode_cop1_cvts_;
+    Statistic<uint64_t>* stat_decode_cop1_cvtd_;
+    Statistic<uint64_t>* stat_decode_cop1_cvtw_;
+    Statistic<uint64_t>* stat_decode_cop1_lt_;
+    Statistic<uint64_t>* stat_decode_cop1_ult_;
+    Statistic<uint64_t>* stat_decode_cop1_lte_;
+    Statistic<uint64_t>* stat_decode_cop1_eq_;
 };
 
 } // namespace Vanadis

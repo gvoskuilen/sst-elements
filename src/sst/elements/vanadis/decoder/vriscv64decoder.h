@@ -37,6 +37,40 @@
 #define VANADIS_RISCV_SIGN12_UPPER_1_32 0xFFFFF000
 #define VANADIS_RISCV_SIGN12_UPPER_1_64 0xFFFFFFFFFFFFF000LL
 
+// 7bit opcodes with lower 2 = 0x3
+#define RVOP_LOAD      0x03
+#define RVOP_LOAD_FP   0x07
+#define RVOP_CUSTOM0   0x0B
+#define RVOP_MISC_MEM  0x0F
+#define RVOP_OP_IMM    0x13
+#define RVOP_AUIPC     0x17
+#define RVOP_OP_IMM_32 0x1B
+// Skip 0x1F
+#define RVOP_STORE     0x23
+#define RVOP_STORE_FP  0x27
+#define RVOP_CUSTOM1   0x2B
+#define RVOP_AMO       0x2F
+#define RVOP_OP        0x33
+#define RVOP_LUI       0x37
+#define RVOP_OP_32     0x3B
+// Skip 0x3F
+#define RVOP_MADD      0x43
+#define RVOP_MSUB      0x47
+#define RVOP_NMSUB     0x4B
+#define RVOP_NMADD     0x4F
+#define RVOP_OP_FP     0x53
+#define RVOP_OP_V      0x57
+#define RVOP_CUSTOM2   0x5B
+// Skip 0x5F
+#define RVOP_BRANCH    0x63
+#define RVOP_JALR      0x67
+// Skip 0x6B (reserved)
+#define RVOP_JAL       0x6F
+#define RVOP_SYSTEM    0x73
+// Skip 0x77
+#define RVOP_CUSTOM3   0x7B
+// Skip 0x7F
+
 #define AMO_W 0x2
 #define AMO_D 0x3
 
@@ -51,7 +85,6 @@
 #define AMO_MAX  0x14
 #define AMO_MINU 0x18
 #define AMO_MAXU 0x1c
-
 
 namespace SST {
 namespace Vanadis {
@@ -82,26 +115,29 @@ public:
     ~VanadisRISCV64Decoder();
 
     const char*                  getISAName() const override { return "RISCV64"; }
-    uint16_t                     countISAIntReg() const override { return options->countISAIntRegisters(); }
-    uint16_t                     countISAFPReg() const override { return options->countISAFPRegisters(); }
-    const VanadisDecoderOptions* getDecoderOptions() const override { return options; }
+    uint16_t                     countISAIntReg() const override { return options_->countISAIntRegisters(); }
+    uint16_t                     countISAFPReg() const override { return options_->countISAFPRegisters(); }
+    const VanadisDecoderOptions* getDecoderOptions() const override { return options_; }
     VanadisFPRegisterMode        getFPRegisterMode() const override { return VANADIS_REGISTER_MODE_FP64; }
 
     void setStackPointer( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t start_stack_address ) override;
 
     void setArg1Register( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t value ) override;
 
-    virtual void setReturnRegister( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t value ) override;
+    void setReturnRegister( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t value ) override;
 
-    virtual void setThreadPointer( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t value ) override;
+    void setThreadPointer( VanadisISATable* isa_tbl, VanadisRegisterFile* regFile, const uint64_t value ) override;
 
+    // Perform a single decode (or fetch) at cycle count 'cycle'
     bool tick( uint64_t cycle ) override;
 
 protected:
-    const VanadisDecoderOptions* options;
-    bool                         fatal_decode_fault;
+    const VanadisDecoderOptions* options_;
+    bool                         fatal_decode_fault_;
 
     void decode(const uint64_t ins_address, const uint32_t ins, VanadisInstructionBundle* bundle);
+    bool decodeBaseISA(const uint32_t op_code, const uint64_t ins_address, const uint32_t ins, VanadisInstructionBundle* bundle);
+    bool decodeCompressedExtension(const uint32_t op_code, const uint64_t ins_address, const uint32_t ins, VanadisInstructionBundle* bundle);
 
     uint16_t expand_rvc_int_register(const uint16_t reg_in) const { return reg_in + 8; }
 
@@ -151,7 +187,7 @@ protected:
             case AMO_MIN: return "AMOMIN";
             case AMO_MAX: return "AMOMAX";
             case AMO_MINU: return "AMOMINU";
-            case AMO_MAXU: return "AMPOMAXU";
+            case AMO_MAXU: return "AMOMAXU";
             default: return "???";
         }
     }
@@ -179,15 +215,9 @@ protected:
 
     uint16_t extract_rd(const uint32_t ins) const { return static_cast<uint16_t>((ins & VANADIS_RISCV_RD_MASK) >> 7); }
 
-    uint16_t extract_rs1(const uint32_t ins) const
-    {
-        return static_cast<uint16_t>((ins & VANADIS_RISCV_RS1_MASK) >> 15);
-    }
+    uint16_t extract_rs1(const uint32_t ins) const { return static_cast<uint16_t>((ins & VANADIS_RISCV_RS1_MASK) >> 15); }
 
-    uint16_t extract_rs2(const uint32_t ins) const
-    {
-        return static_cast<uint16_t>((ins & VANADIS_RISCV_RS2_MASK) >> 20);
-    }
+    uint16_t extract_rs2(const uint32_t ins) const { return static_cast<uint16_t>((ins & VANADIS_RISCV_RS2_MASK) >> 20); }
 
     uint32_t extract_func3(const uint32_t ins) const { return ((ins & VANADIS_RISCV_FUNC3_MASK) >> 12); }
 
@@ -226,37 +256,67 @@ protected:
                                                         : (static_cast<int32_t>(value) | 0xFFFFF000);
     }
 
+    /**
+     * The following functions parse instructions by type
+     * The opcode is not extracted as it has already been evaluated
+     * prior to calling these functions.
+     */
+
     // Extract components for an R-type instruction
+    // [31             25|24   20|19   15|14   12|11            7|6      0]
+    // [      func7      |  rs2  |  rs1  | func3 |      rd       | opcode ]
     void processR(
-        const uint32_t ins, uint32_t& opcode, uint16_t& rd, uint16_t& rs1, uint16_t& rs2, uint32_t& func_code_1,
-        uint32_t& func_code_2) const
+        const uint32_t ins, uint16_t& rd, uint16_t& rs1, uint16_t& rs2, uint32_t& func3, uint32_t& func7) const
     {
-        opcode      = extract_opcode(ins);
-        rd          = extract_rd(ins);
-        rs1         = extract_rs1(ins);
-        rs2         = extract_rs2(ins);
-        func_code_1 = extract_func3(ins);
-        func_code_2 = extract_func7(ins);
+        rd    = extract_rd(ins);
+        rs1   = extract_rs1(ins);
+        rs2   = extract_rs2(ins);
+        func3 = extract_func3(ins);
+        func7 = extract_func7(ins);
     }
 
     // Extract components for an I-type instruction
+    // [31                     20|19   15|14   12|11            7|6      0]
+    // [        imm<11:0>        |  rs1  | func3 |      rd       | opcode ]
     template <typename T>
-    void processI(const uint32_t ins, uint32_t& opcode, uint16_t& rd, uint16_t& rs1, uint32_t& func_code, T& imm) const
+    void processI(const uint32_t ins, uint16_t& rd, uint16_t& rs1, uint32_t& func3, T& imm) const
     {
-        opcode    = extract_opcode(ins);
-        rd        = extract_rd(ins);
-        rs1       = extract_rs1(ins);
-        func_code = extract_func3(ins);
+        rd    = extract_rd(ins);
+        rs1   = extract_rs1(ins);
+        func3 = extract_func3(ins);
 
         // This also performs sign extension which is required in the RISC-V ISA
         int32_t imm_tmp = extract_imm12(ins);
         imm             = static_cast<T>(imm_tmp);
     }
 
-    template <typename T>
-    void processS(const uint32_t ins, uint32_t& opcode, uint16_t& rs1, uint16_t& rs2, uint32_t& func_code, T& imm) const
+    void processIbase(const uint32_t ins, uint16_t& rd, uint16_t& rs1, uint32_t& func3) const
     {
-        opcode    = extract_opcode(ins);
+        rd    = extract_rd(ins);
+        rs1   = extract_rs1(ins);
+        func3 = extract_func3(ins);
+    }
+
+    template<typename T>
+    void processIimm(const uint32_t ins, T& imm) const
+    {
+        int32_t imm_tmp = extract_imm12(ins);
+        imm             = static_cast<T>(imm_tmp);
+    }
+
+    void processIshamt(const uint32_t ins, uint32_t& shamt, uint32_t& func_code) const
+    {
+        // shamt can be 5 or 6 but in the case where it is 5, the 6th bit is reserved as 0; always take 6 bits
+        shamt     = (ins & 0x3F00000) >> 20;
+        func_code = (ins & 0xFC000000) >> 26;
+    }
+
+    // Extract components for an S-type instruction
+    // [31             25|24   20|19   15|14   12|11            7|6      0]
+    // [    imm<11:5>    |  rs2  |  rs1  | func3 |   imm<4:0>    | opcode ]
+    template <typename T>
+    void processS(const uint32_t ins, uint16_t& rs1, uint16_t& rs2, uint32_t& func_code, T& imm) const
+    {
         rs1       = extract_rs1(ins);
         rs2       = extract_rs2(ins);
         func_code = extract_func3(ins);
@@ -266,20 +326,24 @@ protected:
             sign_extend12(((ins_i32 & VANADIS_RISCV_RD_MASK) >> 7) | ((ins_i32 & VANADIS_RISCV_FUNC7_MASK) >> 20)));
     }
 
+    // Extract components for a U-type instruction
+    // [31                                     12|11            7|6      0]
+    // [               imm<31:12>                |       rd      | opcode ]
     template <typename T>
-    void processU(const uint32_t ins, uint32_t& opcode, uint16_t& rd, T& imm) const
+    void processU(const uint32_t ins, uint16_t& rd, T& imm) const
     {
-        opcode = extract_opcode(ins);
         rd     = extract_rd(ins);
 
         const int32_t ins_i32 = static_cast<int32_t>(ins);
         imm                   = static_cast<T>(ins_i32 & 0xFFFFF000);
     }
 
+    // Extract components for a J-type instruction
+    // [31  |30           21|20  |19           12|11            7|6      0]
+    // [<20>|   imm<10:5>   |<11>|  imm<19:12>   |       rd      | opcode ]
     template <typename T>
-    void processJ(const uint32_t ins, uint32_t& opcode, uint16_t& rd, T& imm) const
+    void processJ(const uint32_t ins, uint16_t& rd, T& imm) const
     {
-        opcode = extract_opcode(ins);
         rd     = extract_rd(ins);
 
         const uint32_t ins_i32  = static_cast<uint32_t>(ins);
@@ -294,10 +358,12 @@ protected:
         imm = static_cast<T>(imm_tmp);
     }
 
+    // Extract components for a B-type instruction
+    // [31  |30        25|24   20|19   15|14   12|11       8|7   |6      0]
+    // [<12>| imm<10:5>  |  rs2  |  rs1  | func3 | imm<4:0> |<11>| opcode ]
     template <typename T>
-    void processB(const uint32_t ins, uint32_t& opcode, uint16_t& rs1, uint16_t& rs2, uint32_t& func_code, T& imm) const
+    void processB(const uint32_t ins, uint16_t& rs1, uint16_t& rs2, uint32_t& func_code, T& imm) const
     {
-        opcode    = extract_opcode(ins);
         rs1       = extract_rs1(ins);
         rs2       = extract_rs2(ins);
         func_code = extract_func3(ins);

@@ -107,7 +107,7 @@ public:
         if (itr != predict.end()) {
             stat_branch_hits->addData(1);
             return std::make_pair(true, itr->second);
-        } 
+        }
 
         stat_branch_misses->addData(1);
         return std::make_pair(false, 0);

@@ -271,18 +271,18 @@ private:
 
     SST::Output* output = nullptr;
 
-    uint16_t core_id;
-    uint64_t current_cycle;
+    uint16_t core_id = 0;
+    uint64_t current_cycle = 0;
     uint64_t max_cycle;
-    uint32_t hw_threads;
+    uint32_t hw_threads = 1;
 
-    uint32_t fetches_per_cycle;
-    uint32_t decodes_per_cycle;
-    uint32_t issues_per_cycle;
-    uint32_t retires_per_cycle;
+    uint32_t fetches_per_cycle = 1;
+    uint32_t decodes_per_cycle = 1;
+    uint32_t issues_per_cycle = 1;
+    uint32_t retires_per_cycle = 1;
 
-    uint32_t m_curRetireHwThread;
-    uint32_t m_curIssueHwThread;
+    uint32_t m_curRetireHwThread = 0;
+    uint32_t m_curIssueHwThread = 0;
 
     std::vector<VanadisCircularQueue<VanadisInstruction*>*> rob;
     std::vector<VanadisCircularQueue<VanadisInstruction*>*> v_warp_rob;
@@ -316,6 +316,12 @@ private:
     std::vector<std::deque<VanadisInstruction*>> rocc_queues_;
 
     uint32_t decode_start_thread_ = 0;
+
+    // Save some state cycle-to-cycle to reduce recomputation
+    std::vector<int> retire_rc_;
+    std::vector<int> issue_rc_;
+    std::vector<uint32_t> issue_scan_start_;
+    std::vector<int> issue_unallocated_mem_seen_;
 
     bool* halted_masks = nullptr;
     bool  print_int_reg;

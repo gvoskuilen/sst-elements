@@ -245,13 +245,13 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
         // decode the branch-delay slot AND handle the prediction
         if ( bundle->getInstructionByIndex(bundle->getInstructionCount() - 1)->getInstFuncType() == INST_BRANCH ) {
             #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, 
+            output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG,
                 "-----> Last instruction in the bundle causes potential branch, checking on branch delay slot\n");
             #endif
 
             VanadisInstructionBundle* delay_bundle = ins_loader->getBundleAt(ip + 4);
             uint32_t                  temp_delay   = 0;
-            
+
 
             if ( delay_bundle ) {
                 // We have also decoded the branch-delay
@@ -263,7 +263,7 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
                 #endif
                 if ( ins_loader->hasPredecodeAt(ip + 4, 4) ) {
                     #ifdef VANADIS_BUILD_DEBUG
-                    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, 
+                    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG,
                         "-----> Branch delay slot is a pre-decode cache item, decode it and keep bundle.\n");
                     decodes_performed++;
                     #endif
@@ -282,7 +282,7 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
                 }
                 else {
                     #ifdef VANADIS_BUILD_DEBUG
-                    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, 
+                    output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG,
                         "-----> Branch delay slot also misses in pre-decode cache, need to request it.\n");
                     #endif
                     ins_loader->requestLoadAt(ip + 4, 4);
@@ -303,7 +303,7 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
                         VanadisInstruction* next_ins = bundle->getInstructionByIndex(i)->clone();
 
                         #ifdef VANADIS_BUILD_DEBUG
-                        output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, 
+                        output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG,
                             "---> --> issuing ins addr: 0x0%" PRI_ADDR ", %s...\n", next_ins->getInstructionAddress(), next_ins->getInstCode());
                         #endif
 
@@ -464,7 +464,7 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
         stat_predecode_miss_->addData(1);
         success = true;
     }
-    
+
     #ifdef VANADIS_BUILD_DEBUG
     output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG,
         "---> Performed %" PRIu16 " decodes this cycle, %" PRIu16 " uop-bundles used / updated-ip: 0x%" PRI_ADDR ".\n",
@@ -503,7 +503,7 @@ void VanadisMIPSDecoder::decode( const uint64_t ins_addr, const uint32_t next_in
         stat_uop_generated_->addData(bundle->getInstructionCount());
         #ifdef VANADIS_BUILD_DEBUG
         for ( uint32_t i = 0; i < bundle->getInstructionCount(); ++i ) {
-            output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "-> [%3" PRIu32 "]: %s\n", 
+            output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "-> [%3" PRIu32 "]: %s\n",
                 i, bundle->getInstructionByIndex(i)->getInstCode());
         }
         #endif
@@ -1159,7 +1159,7 @@ void VanadisMIPSDecoder::decode( const uint64_t ins_addr, const uint32_t next_in
         else {
             //output_->verbose(CALL_INFO, 16, 0, "[decoder] ---->
             // decoding function mask: %" PRIu32 " / 0x%x\n", (next_ins & MIPS_FUNC_MASK), (next_ins & MIPS_FUNC_MASK) );
-            
+
             switch ( next_ins & MIPS_FUNC_MASK ) {
             case 0:
             {

@@ -65,12 +65,12 @@ public:
 
     ~VanadisISATable()
     {
-        delete int_reg_ptr;
-        delete int_reg_pending_read;
-        delete int_reg_pending_write;
-        delete fp_reg_ptr;
-        delete fp_reg_pending_read;
-        delete fp_reg_pending_write;
+        delete[] int_reg_ptr;
+        delete[] int_reg_pending_read;
+        delete[] int_reg_pending_write;
+        delete[] fp_reg_ptr;
+        delete[] fp_reg_pending_read;
+        delete[] fp_reg_pending_write;
     }
 
     int getNumIntRegs() { return count_int_reg; }
@@ -119,6 +119,9 @@ public:
     uint16_t getIntPhysReg(const uint16_t int_reg) { assert(int_reg < count_int_reg); return int_reg_ptr[int_reg]; }
 
     uint16_t getFPPhysReg(const uint16_t fp_reg) { assert(fp_reg < count_fp_reg); return fp_reg_ptr[fp_reg]; }
+
+    const uint32_t* getPendingIntWriteArray() const { return int_reg_pending_write; }
+    const uint32_t* getPendingFPWriteArray() const { return fp_reg_pending_write; }
 
     void reset(VanadisISATable* tbl)
     {

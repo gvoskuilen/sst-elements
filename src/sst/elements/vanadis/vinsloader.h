@@ -181,9 +181,9 @@ public:
                         addr, inst_line_offset, cache_line_start, cache_line_start);
         }
         #endif
-        
+
         uint8_t* cached_bytes = predecode_cache_->find(cache_line_start);
-        
+
         // Cache miss
         if ( cached_bytes == nullptr ) {
             #ifdef VANADIS_BUILD_DEBUG
@@ -433,7 +433,7 @@ private:
     using BundleCacheType = std::conditional_t<Mode == VanadisInstructionLoaderMode::LRU_CACHE_MODE,
         VanadisCache<uint64_t, VanadisInstructionBundle, SST::Vanadis::VanadisCacheRecordDeletion::VANADIS_PERFORM_DELETE>*,
         std::unordered_map<uint64_t, VanadisInstructionBundle*>>;
-    
+
     BundleCacheType uop_cache_;
 
     SST::Output* output_;

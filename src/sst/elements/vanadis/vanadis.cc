@@ -129,6 +129,13 @@ VanadisCore::VanadisCore(SST::ComponentId_t id, SST::Params& params) : Component
 
     // Create the decoder(s) - one per HW thread
     SubComponentSlotInfo * decoders = getSubComponentSlotInfo("decoder");
+    fp_flags.reserve(hw_threads);
+    thread_decoders.reserve(hw_threads);
+    isa_options.reserve(hw_threads);
+    register_files.reserve(hw_threads);
+    rob.reserve(hw_threads);
+    issue_isa_tables.reserve(hw_threads);
+    retire_isa_tables.reserve(hw_threads);
     for ( uint32_t i = 0; i < hw_threads; ++i ) {
         VanadisDecoder* thr_decoder = nullptr;
         if ( decoders && decoders->isPopulated(i) ) {
@@ -241,11 +248,11 @@ VanadisCore::VanadisCore(SST::ComponentId_t id, SST::Params& params) : Component
         resetRegisterUseTemps(i, max_int_regs, max_fp_regs);
     }
 
+    retire_rc_.resize(hw_threads, 0);
+    issue_rc_.resize(hw_threads, 0);
+    issue_scan_start_.resize(hw_threads, 0);
+    issue_unallocated_mem_seen_.resize(hw_threads, 0);
 
-    //	memDataInterface =
-    // loadUserSubComponent<Interfaces::SimpleMem>("mem_interface_data",
-    // ComponentInfo::SHARE_NONE, clock_tc_, 		new
-    //&VanadisCore::handleIncomingDataCacheEvent ));
     memInstInterface = loadUserSubComponent<Interfaces::StandardMem>(
         "mem_interface_inst", ComponentInfo::SHARE_NONE, clock_tc_,
         new StandardMem::Handler<SST::Vanadis::VanadisCore,&VanadisCore::handleIncomingInstCacheEvent>(this));
@@ -424,30 +431,34 @@ VanadisCore::~VanadisCore()
 }
 
 void
-VanadisCore::startThread(int thr, uint64_t stackStart, uint64_t instructionPointer )
+VanadisCore::startThread(int thr, uint64_t stack_start, uint64_t instruction_pointer )
 {
-    halted_masks[thr]            = false;
+    halted_masks[thr] = false;
     uint64_t initial_config_ip = thread_decoders[thr]->getInstructionPointer();
 
-    // This wasn't provided, or its explicitly set to zero which means
-    // we should auto-calculate it
-    output->verbose(CALL_INFO, 8, 0, "Configuring core-%d, thread-%d entry point = %p stack = %#" PRIx64  "\n", core_id, thr, (void*)instructionPointer, stackStart);
-    thread_decoders[thr]->setInstructionPointer(instructionPointer);
+    #ifdef VANADIS_BUILD_DEBUG
+    output->verbose(CALL_INFO, 8, 0, "Configuring core-%d, thread-%d entry point = %p stack = %#" PRIx64  "\n", core_id, thr, (void*)instruction_pointer, stack_start);
+    #endif
 
-    thread_decoders[thr]->setStackPointer( issue_isa_tables[thr], register_files[thr], stackStart );
+    // This wasn't provided, or its explicitly set to zero which means we should auto-calculate it
+    thread_decoders[thr]->setInstructionPointer(instruction_pointer);
+
+    thread_decoders[thr]->setStackPointer( issue_isa_tables[thr], register_files[thr], stack_start );
 
     // Force retire table to sync with issue table
     retire_isa_tables[thr]->reset(issue_isa_tables[thr]);
 
     if ( initial_config_ip > 0 ) {
+        thread_decoders[thr]->setInstructionPointer(initial_config_ip);
+    #ifdef VANADIS_BUILD_DEBUG
         output->verbose(
                 CALL_INFO, 8, 0, "Overrding entry point for core-0, thread-0, set to 0x%" PRI_ADDR "\n", initial_config_ip);
-        thread_decoders[thr]->setInstructionPointer(initial_config_ip);
     }
     else {
         output->verbose(
             CALL_INFO, 8, 0, "Utilizing entry point from binary (auto-detected) 0x%" PRI_ADDR "\n",
             thread_decoders[thr]->getInstructionPointer());
+    #endif
     }
 }
 
@@ -534,202 +545,192 @@ VanadisCore::resetRegisterUseTemps(const int hw_thr, const uint16_t int_reg_coun
     std::memset(tmp_fp_reg_write[hw_thr], 0, fp_reg_count);
 }
 
+// Returns 0 if an instruction was issued, otherwise 1
 int
-VanadisCore::performIssue(const uint64_t cycle, int hwThr, uint32_t& rob_start, int& unallocated_memory_op_seen)
+VanadisCore::performIssue(const uint64_t cycle, int hw_thr, uint32_t& rob_start, int& unallocated_memory_op_seen)
 {
     #ifdef VANADIS_BUILD_DEBUG
     const int output_verbosity = output->getVerboseLevel();
     #endif
-    bool      issued_an_ins    = false;
 
-    auto i = hwThr;
-
-    if ( LIKELY(! halted_masks[i] )) {
+    // Unlikely but stop if hw_thr is halted
+    if (UNLIKELY(halted_masks[hw_thr]) ) {
         #ifdef VANADIS_BUILD_DEBUG
-        if ( output->getVerboseLevel() >= 4 ) {
-            if(print_issue_tables) {
-                issue_isa_tables[i]->print(output, register_files[i], print_int_reg, print_fp_reg);
-            }
-        }
+        output->verbose(CALL_INFO, 16, 0, "thread %" PRIu32 " is halted, did not process for issue this cycle.\n", hw_thr);
         #endif
-        // we have not issued an instruction this cycle
-        issued_an_ins = false;
-        VanadisCircularQueue<VanadisInstruction*>* thr_rob;
-        thr_rob = rob[hwThr];
-        // Find the next instruction which has not been issued yet
-        const auto rob_size = thr_rob->size();
-        int k_in=0;
-        for ( auto j = rob_start; j < rob_size; ++j )
-        {
-            VanadisInstruction* ins = thr_rob->peekAt(j);
+        return 1;
+    }
 
-            if ( ! ins->completedIssue() )
-            {
-                #ifdef VANADIS_BUILD_DEBUG
-                if ( output_verbosity >= 8 )
+    #ifdef VANADIS_BUILD_DEBUG
+    if ( output->getVerboseLevel() >= 4 ) {
+        if ( print_issue_tables ) {
+            issue_isa_tables[hw_thr]->print(output, register_files[hw_thr], print_int_reg, print_fp_reg);
+        }
+    }
+    #endif
+
+    bool issued_an_ins = false;
+    VanadisCircularQueue<VanadisInstruction*>* thr_rob = rob[hw_thr];
+    const auto rob_size = thr_rob->size();
+
+    // Nothing available to issue
+    if ( 0 == rob_size ) {
+        return 1;
+    }
+
+    // Check and possibly update scan start point
+    if (rob_start >= rob_size ) {
+        rob_start = 0;
+    }
+
+    // Search for first unissued instruction
+    while ( rob_start < rob_size ) {
+        VanadisInstruction* ins = thr_rob->peekAt(rob_start);
+        if ( !ins->completedIssue() ) break; // Found one!
+        ++rob_start;
+    }
+
+    for ( uint32_t rob_idx = rob_start; rob_idx < rob_size; ++rob_idx ) {
+        VanadisInstruction* ins = thr_rob->peekAt(rob_idx);
+
+        if ( !ins->completedIssue() ) {
+            #ifdef VANADIS_BUILD_DEBUG
+            if ( output_verbosity >= 8 ) {
+                if ( rob_idx == 0 ) {
+                    ins->printToBuffer(inst_print_buffer_, 1024);
+                    output->verbose(
+                        CALL_INFO, 8, 0, "%d: --> Attempting issue for: rob[%" PRIu32 "]: 0x%" PRI_ADDR " / %s\n", hw_thr, rob_idx,
+                        ins->getInstructionAddress(), inst_print_buffer_);
+                }
+            }
+            #endif
+            const int resource_check = checkInstructionResources(
+                ins, int_register_stack, fp_register_stack, issue_isa_tables[hw_thr]);
+
+            #ifdef VANADIS_BUILD_DEBUG
+            if ( output_verbosity >= 8 ) {
+                if ( rob_idx == rob_start ) {
+                    output->verbose(CALL_INFO, 8, 0, "%d ----> Check if registers are usable? result: %d (%s)\n",
+                        hw_thr, resource_check, (0 == resource_check) ? "success" : "cannot issue");
+                }
+            }
+            #endif
+
+            const auto ins_type = ins->getInstFuncType();
+
+            if ( 0 == resource_check ) {
+                // Resources available, can issue
+                int allocate_fu = 1;
+                if (unallocated_memory_op_seen && (ins_type == INST_LOAD || ins_type == INST_STORE || ins_type == INST_FENCE ||
+                    ins_type == INST_ROCC0 || ins_type == INST_ROCC1 || ins_type == INST_ROCC2 || ins_type == INST_ROCC3))
                 {
-                    if ( j == 0 )
-                    {
-                        ins->printToBuffer(inst_print_buffer_, 1024);
-                        output->verbose(
-                            CALL_INFO, 8, 0, "%d: --> Attempting issue for: rob[%" PRIu32 "]: 0x%" PRI_ADDR " / %s\n", i, j,
-                            ins->getInstructionAddress(), inst_print_buffer_);
+                    // the instruction should not be allocated because memory operations
+                    // must be issued to the LSQ in order to maintain memory ordering semantics
+                    allocate_fu = 1;
+                } else {
+                    allocate_fu = allocateFunctionalUnit(ins);
+                }
+
+                #ifdef VANADIS_BUILD_DEBUG
+                if ( output_verbosity >= 8 ) {
+                    if ( rob_idx == 0 ) {
+                        output->verbose(CALL_INFO, 8, 0, "%d: ----> allocated functional unit: %s\n", hw_thr, (0 == allocate_fu) ? "yes" : "no");
                     }
                 }
                 #endif
-                const int resource_check = checkInstructionResources(
-                    ins, int_register_stack, fp_register_stack, issue_isa_tables[i]);
 
-                #ifdef VANADIS_BUILD_DEBUG
-                if ( output_verbosity >= 8 )
-                {
-                    if ( j == 0 )
-                    {
-                        output->verbose(
-                        CALL_INFO, 8, 0, "%d ----> Check if registers are usable? result: %d (%s)\n", i, resource_check,
-                        (0 == resource_check) ? "success" : "cannot issue");
-                    }
-                }
-                #endif
-                const auto ins_type = ins->getInstFuncType();
-
-                if ( 0 == resource_check ) // Resources available, can issue
-                {
-                    int allocate_fu = 1;
-                    if (ins_type == INST_LOAD || ins_type == INST_STORE || ins_type == INST_FENCE ||
-                        ins_type == INST_ROCC0 || ins_type == INST_ROCC1 || ins_type == INST_ROCC2 || ins_type == INST_ROCC3)
-                    {
-                        if(unallocated_memory_op_seen) {
-                            // the instruction should not be allocated because memory operations
-                            // must be issued to the LSQ in order to maintain memory ordering
-                            // semantics
-                            allocate_fu = 1;
-
-                        } else {
-
-                            allocate_fu = allocateFunctionalUnit(ins);
-
-                        }
-                    }
-                    else
-                    {
-                        allocate_fu = allocateFunctionalUnit(ins);
-                    }
+                if ( 0 == allocate_fu ) {
+                    const int status = assignRegistersToInstruction(
+                        thread_decoders[hw_thr]->countISAIntReg(), thread_decoders[hw_thr]->countISAFPReg(), ins,
+                        int_register_stack, fp_register_stack, issue_isa_tables[hw_thr]);
 
                     #ifdef VANADIS_BUILD_DEBUG
-                    if ( output_verbosity >= 8 ) {
-                        if ( j == 0 )
-                        {
-                        output->verbose(
-                            CALL_INFO, 8, 0, "%d: ----> allocated functional unit: %s\n",
-                            i, (0 == allocate_fu) ? "yes" : "no");
+                        if ( checkVerboseAddr( ins->getInstructionAddress() ) ) {
+                            output->setVerboseLevel(8);
                         }
-                    }
-                    #endif
-                    if ( 0 == allocate_fu )
-                    {
-                        int status = 0;
-
-                        status = assignRegistersToInstruction(
-                                thread_decoders[i]->countISAIntReg(), thread_decoders[i]->countISAFPReg(), ins,
-                                int_register_stack, fp_register_stack, issue_isa_tables[i]);
-                        #ifdef VANADIS_BUILD_DEBUG
-                            if ( checkVerboseAddr( ins->getInstructionAddress() ) )
-                            {
-                                output->setVerboseLevel(8);
+                        if ( output_verbosity >= 8 ) {
+                            ins->printToBuffer(inst_print_buffer_, 1024);
+                            output->verbose(CALL_INFO, 8, 0, "%d: ----> Issued for: %s / 0x%" PRI_ADDR " / status: %d\n",
+                                ins->getHWThread(), inst_print_buffer_, ins->getInstructionAddress(), status);
+                            if ( print_rob && hw_thr != 0) {
+                                printRob(hw_thr,thr_rob);
                             }
-                            if ( output_verbosity >= 8 )
-                            {
-                                ins->printToBuffer(inst_print_buffer_, 1024);
-                                output->verbose(
-                                    CALL_INFO, 8, 0, "%d: ----> Issued for: %s / 0x%" PRI_ADDR " / status: %d\n",
-                                    ins->getHWThread(), inst_print_buffer_, ins->getInstructionAddress(), status);
-                                if ( print_rob && i != 0) {
-                                    printRob(i,thr_rob);
-                                }
-                            }
-                        #endif
-
-                        ins->markIssued();
-                        ins_issued_this_cycle++;
-                        issued_an_ins = true;
-                    }
-                    else
-                    {
-                        if(ins_type == INST_LOAD || ins_type == INST_STORE || ins_type == INST_FENCE)
-                        {
-                            // we have seen a memory operation which is not issued, downstream operations
-                            // cannot issue yet to maintain ordering
-                            unallocated_memory_op_seen = true;
                         }
-                    }
-                }
-                else
-                {
-                    #ifdef VANADIS_BUILD_DEBUG
-                    if(1 == resource_check)
-                    {
-                        ins->printToBuffer(inst_print_buffer_, 1024);
-                        output->verbose(
-                            CALL_INFO, 8, 0, "%d: --> Failed to issue for: rob[%" PRIu32 "]: 0x%" PRI_ADDR " / %s\n", i, j,
-                            ins->getInstructionAddress(), inst_print_buffer_);
-                    }
                     #endif
 
-                    if(ins_type == INST_LOAD || ins_type == INST_STORE || ins_type == INST_FENCE) {
+                    ins->markIssued();
+                    ins_issued_this_cycle++;
+                    issued_an_ins = true;
+
+                    // Issued instructions still contribute destination-write hazards for any
+                    // younger instructions considered later in this cycle.
+                    for ( uint16_t k = 0; k < ins->countISAIntRegOut(); ++k ) {
+                        tmp_int_reg_write[hw_thr][ins->getISAIntRegOut(k)] = 1;
+                    }
+                    for ( uint16_t k = 0; k < ins->countISAFPRegOut(); ++k ) {
+                        tmp_fp_reg_write[hw_thr][ins->getISAFPRegOut(k)] = 1;
+                    }
+                    // Start next attempt this cycle from next instruction
+                    rob_start = rob_idx + 1;
+                    break;
+                } else {
+                    if (ins_type == INST_LOAD || ins_type == INST_STORE || ins_type == INST_FENCE) {
                         // we have seen a memory operation which is not issued, downstream operations
                         // cannot issue yet to maintain ordering
                         unallocated_memory_op_seen = true;
                     }
                 }
-
-                // if the instruction is *not* issued yet, we need to keep track
-                // of which instructions are being read
-                for ( auto k = 0; k < ins->countISAIntRegIn(); ++k ) {
-                    tmp_not_issued_int_reg_read[i][ins->getISAIntRegIn(k)] = 1;
+            } else { // Resources not available, cannot issue this instruction
+                #ifdef VANADIS_BUILD_DEBUG
+                if (1 == resource_check) { // Not enough registers available
+                    ins->printToBuffer(inst_print_buffer_, 1024);
+                    output->verbose(CALL_INFO, 8, 0, "%d: --> Failed to issue for: rob[%" PRIu32 "]: 0x%" PRI_ADDR " / %s\n", hw_thr, rob_idx,
+                        ins->getInstructionAddress(), inst_print_buffer_);
                 }
+                #endif
 
-                for ( auto k = 0; k < ins->countISAFPRegIn(); ++k ) {
-                    tmp_not_issued_fp_reg_read[i][ins->getISAFPRegIn(k)] = 1;
+                if (ins_type == INST_LOAD || ins_type == INST_STORE || ins_type == INST_FENCE) {
+                    // we have seen a memory operation which is not issued, downstream operations
+                    // cannot issue yet to maintain ordering
+                    unallocated_memory_op_seen = true;
                 }
             }
-            // Collect up all integer registers we write to
-            for ( auto k = 0; k < ins->countISAIntRegOut(); ++k ) {
-                tmp_int_reg_write[i][ins->getISAIntRegOut(k)] = 1;
+
+            // if the instruction is *not* issued yet, we need to keep track of which instructions are being read
+            for ( uint16_t k = 0; k < ins->countISAIntRegIn(); ++k ) {
+                tmp_not_issued_int_reg_read[hw_thr][ins->getISAIntRegIn(k)] = 1;
             }
-            // Collect up all fp registers we write to
-            for ( auto k = 0; k < ins->countISAFPRegOut(); ++k ) {
-                tmp_fp_reg_write[i][ins->getISAFPRegOut(k)] = 1;
-            }
-            // We issued an instruction this cycle, so exit
-            if ( issued_an_ins ) {
-                // tell the caller where we got this from
-                rob_start = j;
-                break;
+
+            for ( uint16_t k = 0; k < ins->countISAFPRegIn(); ++k ) {
+                tmp_not_issued_fp_reg_read[hw_thr][ins->getISAFPRegIn(k)] = 1;
             }
         }
 
-        // Only print the table if we issued an instruction, reduce print out
-        // clutter
-        #ifdef VANADIS_BUILD_DEBUG
-        if ( (output_verbosity >= 8) && issued_an_ins ) {
-            if(print_issue_tables) {
-                issue_isa_tables[i]->print(output, register_files[i], print_int_reg, print_fp_reg, output_verbosity );
-            }
+        // Collect up all integer registers we write to
+        for ( uint16_t k = 0; k < ins->countISAIntRegOut(); ++k ) {
+            tmp_int_reg_write[hw_thr][ins->getISAIntRegOut(k)] = 1;
         }
-        #endif
-    }
-    else {
-        #ifdef VANADIS_BUILD_DEBUG
-        if(output_verbosity >= 8) {
-            output->verbose(
-                CALL_INFO, 16, 0, "thread %" PRIu32 " is halted, did not process for issue this cycle.\n", i);
+
+        // Collect up all fp registers we write to
+        for ( uint16_t k = 0; k < ins->countISAFPRegOut(); ++k ) {
+            tmp_fp_reg_write[hw_thr][ins->getISAFPRegOut(k)] = 1;
         }
-        #endif
     }
 
-    // if we issued an instruction tell the caller we want to be called again
-    // (return 0)
+    if ( !issued_an_ins && rob_start > rob_size ) {
+        rob_start = rob_size;
+    }
+
+    // Only print the table if we issued an instruction, reduce print out clutter
+    #ifdef VANADIS_BUILD_DEBUG
+    if ( (output_verbosity >= 8) && issued_an_ins ) {
+        if ( print_issue_tables ) {
+            issue_isa_tables[hw_thr]->print(output, register_files[hw_thr], print_int_reg, print_fp_reg, output_verbosity );
+        }
+    }
+    #endif
+
+    // Tell the caller whether we might have another instruction to issue or are definitely blocked
     return issued_an_ins ? 0 : 1;
 }
 
@@ -739,8 +740,6 @@ VanadisCore::performExecute(const uint64_t cycle)
 
     #ifdef VANADIS_BUILD_DEBUG
     const uint32_t verbose_level = output->getVerboseLevel();
-    output->verbose(
-                    CALL_INFO, 16, 0, "performExecute.\n");
     #endif
 
     for ( VanadisFunctionalUnit* next_fu : fu_int_arith ) {
@@ -843,8 +842,7 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
     #endif
 
     // if empty, nothing to do here, return 1 to prevent being called again as
-    // nothing we can do this cycle. This is likely the result of a branch
-    // mis-predict
+    // nothing we can do this cycle. This is likely the result of a branch mis-predict
     if ( rob->empty() ) { return 1; }
 
     VanadisInstruction* rob_front              = rob->peek();
@@ -889,10 +887,8 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
             VanadisSpeculatedInstruction* spec_ins = dynamic_cast<VanadisSpeculatedInstruction*>(rob_front);
 
             if ( nullptr == spec_ins ) {
-                output->fatal(
-                    CALL_INFO, -1,
-                    "Error - instruction is speculated, but not able to "
-                    "perform a cast to a speculated instruction.\n");
+                output->fatal(CALL_INFO, -1,
+                    "Error - instruction is speculated, but not able to perform a cast to a speculated instruction.\n");
             }
 
             stat_branches->addData(1);
@@ -907,16 +903,13 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
 
                     if ( delay_ins->completedExecution() ) {
                         if ( UNLIKELY(delay_ins->trapsError()) ) {
-                            output->fatal(
-                                CALL_INFO, -1,
-                                "Instruction (delay-slot) 0x%" PRI_ADDR " flags an error "
-                                "(instruction-type: %s)\n",
+                            output->fatal(CALL_INFO, -1,
+                                "Instruction (delay-slot) 0x%" PRI_ADDR " flags an error (instruction-type: %s)\n",
                                 delay_ins->getInstructionAddress(), delay_ins->getInstCode());
                         }
 
                         perform_delay_cleanup = true;
-                    }
-                    else {
+                    } else {
                         #ifdef VANADIS_BUILD_DEBUG
                         if(output->getVerboseLevel() >= 8) {
                             output->verbose(
@@ -929,8 +922,7 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
 
                         perform_cleanup = false;
                     }
-                }
-                else {
+                } else {
                     // The instruction is not in the ROB yet, so we must wait
                     perform_cleanup       = false;
                     perform_delay_cleanup = false;
@@ -947,39 +939,34 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
                 perform_pipeline_clear = (pipeline_reset_addr != spec_ins->getSpeculatedAddress());
 
                 #ifdef VANADIS_BUILD_DEBUG
-                // if(output->getVerboseLevel() >= 8)
-                {
-                output->verbose(
-                    CALL_INFO, 8, 0,
-                    "%d ----> Retire: speculated addr: 0x%" PRI_ADDR " / result addr: 0x%" PRI_ADDR " / "
-                    "pipeline-clear: %s\n",
+                output->verbose(CALL_INFO, 8, 0,
+                    "%d ----> Retire: speculated addr: 0x%" PRI_ADDR " / result addr: 0x%" PRI_ADDR " / pipeline-clear: %s\n",
                     spec_ins->getHWThread(), spec_ins->getSpeculatedAddress(), pipeline_reset_addr, perform_pipeline_clear ? "yes" : "no");
 
-                output->verbose(
-                    CALL_INFO, 9, 0,
-                    "----> Updating branch predictor with new information "
-                    "(new addr: 0x%" PRI_ADDR ")\n",
+                output->verbose(CALL_INFO, 9, 0,
+                    "----> Updating branch predictor with new information (new addr: 0x%" PRI_ADDR ")\n",
                     pipeline_reset_addr);
                 if ( print_rob ) {
                     printRob(rob_num,rob);
                 }
-                }
                 #endif
+
                 thr_decoder->getBranchPredictor()->push(
                 spec_ins->getInstructionAddress(), pipeline_reset_addr);
 
+                #ifdef VANADIS_BUILD_DEBUG
                 if ( stop_verbose_when_retire_address > 0 && (rob_front->getInstructionAddress() == stop_verbose_when_retire_address) ) {
                     output->setVerboseLevel(0);
                     output->setVerboseMask(-1);
                 }
-                if ( (pause_on_retire_address > 0) &&
-                     (rob_front->getInstructionAddress() == pause_on_retire_address) ) {
+                #endif
+
+                if ( (pause_on_retire_address > 0) && (rob_front->getInstructionAddress() == pause_on_retire_address) ) {
 
                     // print the register and pipeline status
                     printStatus((*output));
 
-                    output->verbose(
-                        CALL_INFO, 16, 0,
+                    output->verbose(CALL_INFO, 16, 0,
                         "ins: 0x%" PRI_ADDR " / speculated-address: 0x%" PRI_ADDR " / taken: 0x%" PRI_ADDR " / "
                         "reset: 0x%" PRI_ADDR " / clear-check: %3s / pipe-clear: %3s / "
                         "delay-cleanup: %3s\n",
@@ -998,10 +985,8 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
             }
         }
 
-        // is the instruction completed (including anything like delay slots) and
-        // can be cleared from the ROB
-        if ( perform_cleanup )
-        {
+        // is the instruction completed (including anything like delay slots) and can be cleared from the ROB
+        if ( perform_cleanup ) {
             rob->pop();
 
             #ifdef VANADIS_BUILD_DEBUG
@@ -1020,17 +1005,19 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
                 }
             }
             #endif
-            if ( pipeline_trace_file_ != nullptr )
-            {
+
+            if ( pipeline_trace_file_ != nullptr ) {
                 fprintf(pipeline_trace_file_, "0x%08" PRI_ADDR " %s\n", rob_front->getInstructionAddress(), rob_front->getInstCode());
             }
 
-			if(UNLIKELY(rob_front->updatesFPFlags())) {
+            // Update FP flags if next instruction needs it
+			if ( UNLIKELY(rob_front->updatesFPFlags()) ) {
                 #ifdef VANADIS_BUILD_DEBUG
                 output->verbose(CALL_INFO, 16, VANADIS_DBG_RETIRE_FLG, "------> updating floating-point flags.\n");
                 #endif
 				rob_front->updateFPFlags();
 			}
+
             #ifdef VANADIS_BUILD_DEBUG
             output->verbose(CALL_INFO, 16, VANADIS_DBG_RETIRE_FLG, "------> recovering retired registers thr: %d.\n", ins_thread);
             #endif
@@ -1045,7 +1032,6 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
                     }
                     if(print_issue_tables)
                     {
-
                         issue_isa_tables[ins_thread]->print(output, register_files[ins_thread], print_int_reg, print_fp_reg, output->getVerboseLevel());
                     }
                 }
@@ -1056,8 +1042,7 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
 
             ins_retired_this_cycle++;
 
-            if ( perform_delay_cleanup )
-            {
+            if ( perform_delay_cleanup ) {
 
                 VanadisInstruction* delay_ins = rob->pop();
                 #ifdef VANADIS_BUILD_DEBUG
@@ -1070,9 +1055,10 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
                         pipeline_trace_file_, "0x%08" PRI_ADDR " %s\n", delay_ins->getInstructionAddress(), delay_ins->getInstCode());
                 }
 
-				if(UNLIKELY(rob_front->updatesFPFlags())) {
+                // Update FP flags if next instruction needs it
+				if ( UNLIKELY(rob_front->updatesFPFlags()) ) {
                     #ifdef VANADIS_BUILD_DEBUG
-                    output->verbose(CALL_INFO, 16, VANADIS_DBG_RETIRE_FLG, "------> updating floating-point flags.\n");
+                    output->verbose(CALL_INFO, 16, VANADIS_DBG_RETIRE_FLG, "------> updating floating-point flags\n");
                     #endif
 					rob_front->updateFPFlags();
 				}
@@ -1141,27 +1127,23 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
     else
     {
         #ifdef VANADIS_BUILD_DEBUG
-        output->verbose(CALL_INFO, 16, 0,"Instruction 0x%" PRI_ADDR " instruction-code=%s has execute? :%d\n",rob_front->getInstructionAddress(), rob_front->getInstCode(), rob_front->completedExecution());
+        output->verbose(CALL_INFO, 16, 0,"Instruction 0x%" PRI_ADDR " instruction-code=%s has execute? :%d\n",
+            rob_front->getInstructionAddress(), rob_front->getInstCode(), rob_front->completedExecution());
         #endif
         if ( UNLIKELY(INST_SYSCALL == rob_front->getInstFuncType()) ) {
             if ( rob_front->completedIssue() ) {
-                // have we been marked front on ROB yet? if yes, then we have issued our
-                // syscall
-                if ( !rob_front->checkFrontOfROB() )
-                {
+                // have we been marked front on ROB yet? if yes, then we have issued our syscall
+                if ( !rob_front->checkFrontOfROB() ) {
                     VanadisSysCallInstruction* the_syscall_ins = dynamic_cast<VanadisSysCallInstruction*>(rob_front);
 
                     if ( nullptr == the_syscall_ins ) {
-                        output->fatal( CALL_INFO, -1,
-                            "Error: SYSCALL cannot be converted to an actual syscall instruction.\n");
+                        output->fatal( CALL_INFO, -1, "Error: SYSCALL cannot be converted to an actual syscall instruction.\n");
                     }
 
                     #ifdef VANADIS_BUILD_DEBUG
-                    output->verbose(
-                        CALL_INFO, 16, 0,
-                        "[syscall] -> calling OS handler in decode engine for thr %d "
-                        "(ins-addr: 0x%0" PRI_ADDR ")...\n", ins_thread,
-                        the_syscall_ins->getInstructionAddress());
+                    output->verbose(CALL_INFO, 16, 0,
+                        "[syscall] -> calling OS handler in decode engine for thr %d (ins-addr: 0x%0" PRI_ADDR ")...\n",
+                        ins_thread, the_syscall_ins->getInstructionAddress());
                     #endif
                     bool ret, flushLSQ;
                     std::tie( ret, flushLSQ) = thr_decoder->getOSHandler()->handleSysCall(the_syscall_ins);
@@ -1171,11 +1153,9 @@ VanadisCore::performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*
 
                     if ( ret ) {
                         #ifdef VANADIS_BUILD_DEBUG
-                        output->verbose(
-                        CALL_INFO, 16, 0,
-                        "[syscall] -> calling syscallReturn "
-                        "(ins-addr: 0x%0" PRI_ADDR " hw_thr: %d)...\n",
-                        the_syscall_ins->getInstructionAddress(), ins_thread);
+                        output->verbose(CALL_INFO, 16, 0,
+                            "[syscall] -> calling syscallReturn (ins-addr: 0x%0" PRI_ADDR " hw_thr: %d)...\n",
+                            the_syscall_ins->getInstructionAddress(), ins_thread);
                         #endif
                         syscallReturn( rob_front->getHWThread() );
                     }
@@ -1379,13 +1359,13 @@ VanadisCore::tick(SST::Cycle_t cycle)
     ins_retired_this_cycle = 0;
     ins_decoded_this_cycle = 0;
 
-
+    // Check if currently trying to checkpoint and need to quiesce pipeline
     if ( UNLIKELY( nullptr != m_checkpointing ) ) {
         bool should_process = false;
-        for ( uint32_t i = 0; i < hw_threads; ++i ) {
-            should_process = should_process | ! halted_masks[i];
+        for ( uint32_t hw_thr = 0; hw_thr < hw_threads; ++hw_thr ) {
+            should_process = should_process || !halted_masks[hw_thr];
         }
-        // if all theads have halted
+        // if all threads have halted
         if ( ! should_process ) {
             lsq->tick((uint64_t)cycle);
             #ifdef VANADIS_BUILD_DEBUG
@@ -1403,37 +1383,21 @@ VanadisCore::tick(SST::Cycle_t cycle)
     }
 
     #ifdef VANADIS_BUILD_DEBUG
-    if(output_verbosity >= 2)
-    {
-        output->verbose(
-            CALL_INFO, 2, 0, "============================ Cycle %12" PRIu64 " ============================\n",
-            current_cycle);
-    }
+    output->verbose(CALL_INFO, 2, 0, "============================ Cycle %12" PRIu64 " ============================\n", current_cycle);
+    output->verbose(CALL_INFO, 8, 0, "-- Core Status %12" PRIu64 ":\n",current_cycle);
 
-    // if(output_verbosity >= 9)
-    {
-        output->verbose(CALL_INFO, 8, 0, "-- Core Status %12" PRIu64 ":\n",current_cycle);
-
-        for ( uint32_t i = 0; i < hw_threads; ++i ) {
-
-            if(halted_masks[i]==false)
-            {
-                output->verbose(
-                CALL_INFO, 8, 0,
-                "---> Thr: %5" PRIu32 " (%s) / ROB-Pend: %" PRIu16 " / IntReg-Free: %" PRIu16 " / FPReg-Free: %" PRIu16
-                "\n",
-                i, halted_masks[i] ? "halted" : "unhalted", (uint16_t)rob[i]->size(),
+    for ( uint32_t hw_thr = 0; hw_thr < hw_threads; ++hw_thr ) {
+        if ( halted_masks[hw_thr]==false ) {
+            output->verbose(CALL_INFO, 8, 0,
+                "---> Thr: %5" PRIu32 " (%s) / ROB-Pend: %" PRIu16 " / IntReg-Free: %" PRIu16 " / FPReg-Free: %" PRIu16 "\n",
+                hw_thr, halted_masks[hw_thr] ? "halted" : "unhalted", (uint16_t)rob[hw_thr]->size(),
                 (uint16_t)int_register_stack->unused(), (uint16_t)fp_register_stack->unused());
-            }
         }
-
-        output->verbose(CALL_INFO, 9, 0, "-- Resetting Zero Registers\n");
     }
     #endif
 
     for ( uint32_t i = 0; i < hw_threads; ++i ) {
         const uint16_t zero_reg = isa_options[i]->getRegisterIgnoreWrites();
-
         if ( zero_reg < isa_options[i]->countISAIntRegisters() ) {
             VanadisISATable* thr_issue_table = issue_isa_tables[i];
             const uint16_t   zero_phys_reg   = thr_issue_table->getIntPhysReg(zero_reg);
@@ -1442,152 +1406,120 @@ VanadisCore::tick(SST::Cycle_t cycle)
     }
 
     #ifdef VANADIS_BUILD_DEBUG
-    if(output_verbosity >= 9)
-    {
-        output->verbose(
-            CALL_INFO, 9, 0,
-            "=> Retire Stage "
-            "<==========================================================\n");
+    if(output_verbosity >= 9) {
+        output->verbose(CALL_INFO, 9, 0, "=> Retire Stage <==========================================================\n");
     }
     #endif
-    // Retire
-    // //////////////////////////////////////////////////////////////////////////
-    {
-    std::vector<int>  rc(hw_threads,0);
-    auto cnt = hw_threads;
+
+    // Retire //////////////////////////////////////////////////////////////////////////
+    std::fill(retire_rc_.begin(), retire_rc_.end(), 0);
+    uint32_t cnt = hw_threads;
     for ( uint32_t i = 0; i < retires_per_cycle; ++i ) {
 
-        // find an unblocked hardware thread
-        while ( 1 == rc[m_curRetireHwThread] && cnt ) {
-            ++m_curRetireHwThread;
-            m_curRetireHwThread %= (hw_threads);
+        // find next unblocked hardware thread
+        while ( cnt && 0 != retire_rc_[m_curRetireHwThread] ) {
+            if ( ++m_curRetireHwThread == hw_threads ) m_curRetireHwThread = 0;
             --cnt;
         }
 
         // we found a unblocked hardware thread
         if ( cnt ) {
-            auto thr = m_curRetireHwThread;
-            rc[thr] = performRetire(thr, rob[thr], cycle);
-            ++m_curRetireHwThread;
-            m_curRetireHwThread %= (hw_threads);
-            cnt = hw_threads;
+            const uint32_t thr = m_curRetireHwThread;
+            retire_rc_[thr] = performRetire(thr, rob[thr], cycle);
+            if ( ++m_curRetireHwThread == hw_threads ) m_curRetireHwThread = 0;
+            cnt = hw_threads; // begin search again next cycle
         } else {
             break;
         }
-    }
     }
 
     // Record how many instructions we retired this cycle
     stat_ins_retired->addData(ins_retired_this_cycle);
 
-    // Execute
-    // //////////////////////////////////////////////////////////////////////////
+    // Execute //////////////////////////////////////////////////////////////////////////
     #ifdef VANADIS_BUILD_DEBUG
-    if(output_verbosity >= 9)
-    {
-        output->verbose(
-            CALL_INFO, 9, 0,
-            "=> Execute Stage "
-            "<==========================================================\n");
+    if(output_verbosity >= 9) {
+        output->verbose(CALL_INFO, 9, 0, "=> Execute Stage <==========================================================\n");
     }
     #endif
+
     performExecute(cycle);
 
-    // Issue
-    // //////////////////////////////////////////////////////////////////////////
+    // Issue //////////////////////////////////////////////////////////////////////////
     #ifdef VANADIS_BUILD_DEBUG
-    if(output_verbosity >= 9)
-    {
-        output->verbose(
-            CALL_INFO, 9, 0,
-            "=> Issue Stage  "
-            "<==========================================================\n");
+    if(output_verbosity >= 9) {
+        output->verbose(CALL_INFO, 9, 0, "=> Issue Stage  <==========================================================\n");
     }
     #endif
-    // Clear our temps on a per-thread basis
-    for ( uint32_t i = 0; i < hw_threads; ++i ) {
-        resetRegisterUseTemps(i, thread_decoders[i]->countISAIntReg(), thread_decoders[i]->countISAFPReg());
+
+    // Clear and prep temp data structures for issue
+    std::fill(issue_rc_.begin(), issue_rc_.end(), 0);
+
+    for ( uint32_t hw_thr = 0; hw_thr < hw_threads; ++hw_thr ) {
+        resetRegisterUseTemps(hw_thr, thread_decoders[hw_thr]->countISAIntReg(), thread_decoders[hw_thr]->countISAFPReg());
+        issue_unallocated_mem_seen_[hw_thr] = 0;
+        issue_scan_start_[hw_thr] = 0;
     }
 
-    {
-    std::vector<uint32_t> rob_start(hw_threads,0);
-    std::vector<int> unallocated_memory_op_seen(hw_threads,false);
-
-    // Attempt to perform issues, cranking through the entire ROB call by call or until we
-    // reach the max issues this cycle
-    std::vector<int> rc(hw_threads,0);
-    auto cnt = hw_threads;
+    // Attempt to perform issues, cranking through the entire ROB call by call or until we reach the max issues this cycle
+    cnt = hw_threads;
     for ( uint32_t i = 0; i < issues_per_cycle; ++i ) {
         // find an unblocked hardware thread
-        while ( 0 != rc[m_curIssueHwThread] && cnt ) {
-            ++m_curIssueHwThread;
-            m_curIssueHwThread %= (hw_threads);
+        while ( cnt && 0 != issue_rc_[m_curIssueHwThread] ) {
+            if ( ++m_curIssueHwThread == hw_threads ) m_curIssueHwThread = 0;
             --cnt;
         }
 
-        // we found a unblocked hardware thread
+        // we found a unblocked hardware thread, attempt issue
         if ( cnt ) {
-            auto thr = m_curIssueHwThread;
-            rc[thr] = performIssue(cycle, thr, rob_start[thr], unallocated_memory_op_seen[thr]);
-            ++m_curIssueHwThread;
-            m_curIssueHwThread %= (hw_threads);
-            cnt = (hw_threads);
+            const uint32_t thr = m_curIssueHwThread;
+            issue_rc_[thr] = performIssue(cycle, thr, issue_scan_start_[thr], issue_unallocated_mem_seen_[thr]);
+            if ( ++m_curIssueHwThread == hw_threads ) m_curIssueHwThread = 0;
+            cnt = hw_threads;
         } else {
             break;
         }
-    }
     }
 
     // Record how many instructions we issued this cycle
     stat_ins_issued->addData(ins_issued_this_cycle);
 
-    // Decode
-    // //////////////////////////////////////////////////////////////////////////
+    // Decode //////////////////////////////////////////////////////////////////////////
     #ifdef VANADIS_BUILD_DEBUG
-    if(output_verbosity >= 9)
-    {
-        output->verbose(
-            CALL_INFO, 9, 0,
-            "=> Decode Stage "
-            "<==========================================================\n");
+    if(output_verbosity >= 9) {
+        output->verbose(CALL_INFO, 9, 0, "=> Decode Stage <==========================================================\n");
     }
     #endif
+
     performDecode(cycle);
 
     stat_ins_decoded->addData(ins_decoded_this_cycle);
 
-    // Fetch
-    // //////////////////////////////////////////////////////////////////////////
+    // Fetch //////////////////////////////////////////////////////////////////////////
     #ifdef VANADIS_BUILD_DEBUG
-    if(output_verbosity >= 9)
-    {
-        output->verbose(
-            CALL_INFO, 9, 0,
-            "=> Fetch Stage "
-            "<==========================================================\n");
+    if(output_verbosity >= 9) {
+        output->verbose(CALL_INFO, 9, 0, "=> Fetch Stage <==========================================================\n");
     }
     #endif
-    for ( uint32_t i = 0; i < fetches_per_cycle; ++i ) {
-        performFetch(cycle);
+
+    // performFetch() is intentionally empty; fetching occurs via decoder
+
+    // Complete cycle
+
+    #ifdef VANADIS_BUILD_DEBUG
+    if(output_verbosity >= 16) {
+        output->verbose(CALL_INFO, 16, 0, "================================ End of Cycle ==============================\n");
     }
+    #endif
+
+    current_cycle++;
 
     uint64_t rob_total_count = 0;
-    for ( uint32_t i = 0; i < hw_threads; ++i ) {
-        rob_total_count += rob[i]->size();
+    for ( uint32_t hw_thr = 0; hw_thr < hw_threads; ++hw_thr ) {
+        rob_total_count += rob[hw_thr]->size();
     }
 
     stat_rob_entries->addData(rob_total_count);
-
-    #ifdef VANADIS_BUILD_DEBUG
-    if(output_verbosity >= 16)
-    {
-        output->verbose(
-            CALL_INFO, 16, 0,
-            "================================ End of Cycle "
-            "==============================\n");
-    }
-    #endif
-    current_cycle++;
 
     stat_int_phys_regs_in_use->addData(int_register_stack->capacity() - int_register_stack->unused());
     stat_fp_phys_regs_in_use->addData(fp_register_stack->capacity() - fp_register_stack->unused());
@@ -1596,117 +1528,81 @@ VanadisCore::tick(SST::Cycle_t cycle)
         #ifdef VANADIS_BUILD_DEBUG
         output->verbose(CALL_INFO, 16, 0, "Reached maximum cycle %" PRIu64 ". Core stops processing.\n", current_cycle);
         #endif
-        //primaryComponentOKToEndSim();
         return true;
     }
-    else {
-        return false;
-    }
+
+    return false;
 }
 
 int
 VanadisCore::checkInstructionResources(
     VanadisInstruction* ins, VanadisRegisterStack* int_regs, VanadisRegisterStack* fp_regs, VanadisISATable* isa_table)
 {
-    const auto hwThr = ins->getHWThread();
-    auto int_reg_write = tmp_int_reg_write[hwThr];
-    auto not_issued_int_reg_read = tmp_not_issued_int_reg_read[hwThr];
-    auto fp_reg_write = tmp_fp_reg_write[hwThr];
-    auto not_issued_fp_reg_read = tmp_not_issued_fp_reg_read[hwThr];
+    const uint32_t hw_thr = ins->getHWThread();
 
-    bool      resources_good   = true;
-    #ifdef VANADIS_BUILD_DEBUG
-    const int output_verbosity = output->getVerboseLevel();
-    #endif
-
-    const uint16_t int_reg_in_count = ins->countISAIntRegIn();
     const uint16_t int_reg_out_count = ins->countISAIntRegOut();
     const uint16_t fp_reg_out_count = ins->countISAFPRegOut();
-    const uint16_t fp_reg_in_count = ins->countISAFPRegIn();
+    const uint16_t free_int_regs = int_regs->unused();
+    const uint16_t free_fp_regs = fp_regs->unused();
 
-    // We need places to store our output registers
-    resources_good &= (int_regs->unused() >= int_reg_out_count) && (fp_regs->unused() >= fp_reg_out_count);
+    const uint32_t* const pending_int_write_tbl = isa_table->getPendingIntWriteArray();
+    const uint32_t* const pending_fp_write_tbl = isa_table->getPendingFPWriteArray();
 
-    if ( UNLIKELY(!resources_good )) {
+    // We need enough free physical registers for all outputs
+    if ( UNLIKELY( free_int_regs < int_reg_out_count || free_fp_regs < fp_reg_out_count ) ) {
         #ifdef VANADIS_BUILD_DEBUG
-        output->verbose(CALL_INFO, 8, 0, "hw_thr=%d: --> Attempting issue for: ins:0x%" PRI_ADDR " / %s\n", hwThr,
-                                ins->getInstructionAddress(), ins->getInstCode());
-        output->verbose(
-            CALL_INFO, 16, 0,
-            "----> insufficient output / req: int: %" PRIu16 " fp: %" PRIu16 " / free: int: %" PRIu16 " fp: %" PRIu16
-            "\n",
-            (uint16_t)ins->countISAIntRegOut(), (uint16_t)ins->countISAFPRegOut(), (uint16_t)int_regs->unused(),
-            (uint16_t)fp_regs->unused());
+        output->verbose(CALL_INFO, 8, 0, "hw_thr=%d: --> Attempting issue for: ins:0x%" PRI_ADDR " / %s\n",
+            hw_thr, ins->getInstructionAddress(), ins->getInstCode());
+        output->verbose(CALL_INFO, 16, 0,
+            "----> insufficient output / req: int: %" PRIu16 " fp: %" PRIu16 " / free: int: %" PRIu16 " fp: %" PRIu16"\n",
+            int_reg_out_count, fp_reg_out_count, free_int_regs, free_fp_regs);
         #endif
         return 1;
     }
 
-    // If there are any pending writes against our reads, we can't issue until
-    // they are done
-
+    // Check integer inputs for pending writes against our reads; cannot issue until these are done
+    const uint16_t int_reg_in_count = ins->countISAIntRegIn();
+    uint8_t* const int_reg_write = tmp_int_reg_write[hw_thr];
     for ( uint16_t i = 0; i < int_reg_in_count; ++i ) {
-        const uint16_t ins_isa_reg = ins->getISAIntRegIn(i);
-        resources_good &= (!isa_table->pendingIntWrites(ins_isa_reg)) && (!int_reg_write[ins_isa_reg]);
+        const uint16_t reg = ins->getISAIntRegIn(i);
+        if ( UNLIKELY (pending_int_write_tbl[reg] || int_reg_write[reg])) {
+            return 2;
+        }
     }
 
-    #ifdef VANADIS_BUILD_DEBUG
-    // if ( output_verbosity > 16 ) {
-    //     output->verbose(
-    //         CALL_INFO, 16, 0, "--> Check input integer registers, issue-status: %s\n", (resources_good ? "yes" : "no"));
-    // }
-    #endif
-
-    if ( LIKELY(!resources_good )) { return 2; }
-
+    // Check floating point inputs for pending writes against our reads; cannot issue until these are done
+    const uint16_t fp_reg_in_count = ins->countISAFPRegIn();
+    uint8_t* const fp_reg_write = tmp_fp_reg_write[hw_thr];
     for ( uint16_t i = 0; i < fp_reg_in_count; ++i ) {
-        const uint16_t ins_isa_reg = ins->getISAFPRegIn(i);
-        resources_good &= (!isa_table->pendingFPWrites(ins_isa_reg)) & (!fp_reg_write[ins_isa_reg]);
+        const uint16_t reg = ins->getISAFPRegIn(i);
+        if ( UNLIKELY( pending_fp_write_tbl[reg] || fp_reg_write[reg] ) ) {
+            return 3;
+        }
     }
 
-    #ifdef VANADIS_BUILD_DEBUG
-    // if ( output_verbosity > 16 ) {
-    //     output->verbose(
-    //         CALL_INFO, 16, 0, "--> Check input floating-point registers, issue-status: %s\n",
-    //         (resources_good ? "yes" : "no"));
-    // }
-    #endif
-
-    if ( UNLIKELY(!resources_good )) { return 3; }
-
+    // Check integer outputs
+    // - do not write a reg that a prior not-yet-issued instruction needs to read
+    // - do not write a reg that is already written by a prior not-yet-issued instruction
+    uint8_t* const not_issued_int_reg_read = tmp_not_issued_int_reg_read[hw_thr];
     for ( uint16_t i = 0; i < int_reg_out_count; ++i ) {
-        const uint16_t ins_isa_reg = ins->getISAIntRegOut(i);
-
-        // Check there are no RAW in the pending instruction queue
-        resources_good &= (!not_issued_int_reg_read[ins_isa_reg]) && (!int_reg_write[ins_isa_reg]);
+        const uint16_t reg = ins->getISAIntRegOut(i);
+        if ( UNLIKELY(not_issued_int_reg_read[reg] || int_reg_write[reg]) ) {
+            return 4;
+        }
     }
 
-    #ifdef VANADIS_BUILD_DEBUG
-    // if ( output_verbosity > 16 ) {
-    //     output->verbose(
-    //         CALL_INFO, 16, 0, "--> Check output integer registers, issue-status: %s\n",
-    //         (resources_good ? "yes" : "no"));
-    // }
-    #endif
-
-    if ( LIKELY(!resources_good )) { return 4; }
-
+    // Check floating point outputs
+    // - do not write a reg that a prior not-yet-issued instruction needs to read
+    // - do not write a reg that is already written by a prior not-yet-issued instruction
+    uint8_t* const not_issued_fp_reg_read = tmp_not_issued_fp_reg_read[hw_thr];
     for ( uint16_t i = 0; i < fp_reg_out_count; ++i ) {
-        const uint16_t ins_isa_reg = ins->getISAFPRegOut(i);
-
-        // Check there are no RAW in the pending instruction queue
-        resources_good &= (!not_issued_fp_reg_read[ins_isa_reg]) && (!fp_reg_write[ins_isa_reg]);
+        const uint16_t reg = ins->getISAFPRegOut(i);
+        if ( UNLIKELY(not_issued_fp_reg_read[reg] || fp_reg_write[reg]) ) {
+            return 5;
+        }
     }
 
-    #ifdef VANADIS_BUILD_DEBUG
-    // if ( output_verbosity > 16 ) {
-    //     output->verbose(
-    //         CALL_INFO, 16, 0, "--> Check output floating-point registers, issue-status: %s\n",
-    //         (resources_good ? "yes" : "no"));
-    // }
-    #endif
-
-    if ( UNLIKELY(!resources_good )) { return 5; }
-
+    // All needed registers are available
     return 0;
 }
 
@@ -2646,6 +2542,7 @@ VanadisCore::resetHwThread(uint32_t thr)
     issue_table->resetPendingCnts();
 
     retire_table->reset(issue_table);
+
     #if 0
     output->verbose(CALL_INFO, 16, 0,"%s() issue isa table\n",__func__);
     issue_table->print(output, reg_file, true, false, 0);

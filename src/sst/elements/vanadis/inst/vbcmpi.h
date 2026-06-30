@@ -36,6 +36,7 @@ public:
         offset(offst)
     {
         isa_int_regs_in[0] = src_1;
+        isa_int_regs_in_mask_ |= (1ULL << src_1);
     }
 
     VanadisBranchRegCompareImmInstruction* clone() override { return new VanadisBranchRegCompareImmInstruction(*this); }
@@ -61,9 +62,9 @@ public:
             ss << " isa-in: " <<  isa_int_regs_in[0] << " / phys-in: " << phys_int_regs_in_0;
             ss << " / imm: " << imm_value << " / offset: " << offset << " = " << static_cast<int64_t>(getInstructionAddress()) + offset;
             if(compare_result)
-            ss << "-----> taken-address: 0x"<<std::hex << takenAddress;
+            ss << "-----> taken-address: 0x"<<std::hex << taken_address_;
             else
-            ss << "-----> not-taken-address: 0x"<<std::hex << takenAddress;
+            ss << "-----> not-taken-address: 0x"<<std::hex << taken_address_;
             output->verbose( CALL_INFO, verboselevel, 0, "%s\n", ss.str().c_str());
         }
         #endif
@@ -78,11 +79,11 @@ public:
             const int64_t instruction_address = getInstructionAddress();
             const int64_t ins_addr_and_offset = instruction_address + offset;
 
-            takenAddress = static_cast<uint64_t>(ins_addr_and_offset);
+            taken_address_ = static_cast<uint64_t>(ins_addr_and_offset);
 
         }
         else {
-            takenAddress = calculateStandardNotTakenAddress();
+            taken_address_ = calculateStandardNotTakenAddress();
         }
     }
 

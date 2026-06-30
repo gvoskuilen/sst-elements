@@ -34,6 +34,8 @@ public:
         isa_int_regs_in[0]  = src_1;
         isa_int_regs_in[1]  = src_2;
         isa_int_regs_out[0] = dest;
+        isa_int_regs_in_mask_ = (1ULL << src_1) | (1ULL << src_2);
+        isa_int_regs_out_mask_ = (1ULL << dest);
     }
 
     VanadisSubInstruction*    clone() override { return new VanadisSubInstruction(*this); }

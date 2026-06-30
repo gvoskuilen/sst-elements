@@ -210,15 +210,6 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
     uint16_t decodes_performed = 0;
     #endif
 
-
-    if ( thread_rob->full() ) {
-        #ifdef VANADIS_BUILD_DEBUG
-        output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "---> Decoded pending issue queue is full, no decodes permitted.\n");
-        #endif
-        return false;
-    }
-
-
     uint16_t uop_bundles_used  = 0;
     bool success = false;
 
@@ -306,7 +297,6 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
                         output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG,
                             "---> --> issuing ins addr: 0x0%" PRI_ADDR ", %s...\n", next_ins->getInstructionAddress(), next_ins->getInstCode());
                         #endif
-
                         thread_rob->push(next_ins);
 
                         // if this is the last instruction in the bundle
@@ -395,7 +385,8 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
                         CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "---> --> issuing ins addr: 0x0%" PRI_ADDR ", %s...\n",
                         next_ins->getInstructionAddress(), next_ins->getInstCode());
                     #endif
-                    thread_rob->push(next_ins->clone());
+                    auto new_ins = next_ins->clone();
+                    thread_rob->push(new_ins);
                 }
 
                 uop_bundles_used++;
@@ -1249,12 +1240,12 @@ void VanadisMIPSDecoder::decode( const uint64_t ins_addr, const uint32_t next_in
                 case 16:
                 {
                     bundle->addInstruction(
-                        new VanadisFP2FPInstruction<int32_t>(ins_addr, hw_thr, options_, fpflags, fd, fs));
+                        new VanadisFP2FPInstruction<int32_t,VANADIS_REGISTER_MODE_FP32>(ins_addr, hw_thr, options_, fpflags, fd, fs));
                 } break;
                 case 17:
                 {
                     bundle->addInstruction(
-                        new VanadisFP2FPInstruction<int64_t>(ins_addr, hw_thr, options_, fpflags, fd, fs));
+                        new VanadisFP2FPInstruction<int64_t,VANADIS_REGISTER_MODE_FP32>(ins_addr, hw_thr, options_, fpflags, fd, fs));
                 } break;
                 default:
                     insert_decode_fault = true;

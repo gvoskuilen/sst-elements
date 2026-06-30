@@ -36,6 +36,8 @@ public:
         isa_int_regs_in[0]  = src;
         isa_int_regs_in[1]  = reg_comp;
         isa_int_regs_out[0] = dest;
+        isa_int_regs_in_mask_ = (1ULL << src) | (1ULL << reg_comp);
+        isa_int_regs_out_mask_ = (1ULL << dest);
     }
 
     VanadisMoveCompareImmInstruction* clone() override { return new VanadisMoveCompareImmInstruction(*this); }

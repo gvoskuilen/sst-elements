@@ -34,12 +34,16 @@ public:
         for ( uint16_t i = 0; i < isa_opts->countISAIntRegisters(); ++i ) {
             isa_int_regs_in[i]  = i;
             isa_int_regs_out[i] = i;
+            isa_int_regs_in_mask_ |= (1ULL << i);
         }
+        isa_int_regs_out_mask_ = isa_int_regs_in_mask_;
 
         for ( uint16_t i = 0; i < isa_opts->countISAFPRegisters(); ++i ) {
             isa_fp_regs_in[i]  = i;
             isa_fp_regs_out[i] = i;
+            isa_fp_regs_in_mask_ |= (1ULL << i);
         }
+        isa_fp_regs_out_mask_ = isa_fp_regs_in_mask_;
     }
 
     VanadisSysCallInstruction* clone() override { return new VanadisSysCallInstruction(*this); }

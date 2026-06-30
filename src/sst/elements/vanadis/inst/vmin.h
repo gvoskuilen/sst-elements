@@ -30,10 +30,11 @@ public:
         const uint16_t src_1, const uint16_t src_2) :
         VanadisInstruction(addr, hw_thr, isa_opts, 2, 1, 2, 1, 0, 0, 0, 0)
     {
-
         isa_int_regs_in[0]  = src_1;
         isa_int_regs_in[1]  = src_2;
         isa_int_regs_out[0] = dest;
+        isa_int_regs_in_mask_ = (1ULL << src_1) | (1ULL << src_2);
+        isa_int_regs_out_mask_ = (1ULL << dest);
     }
 
     VanadisMinInstruction*    clone() override { return new VanadisMinInstruction(*this); }

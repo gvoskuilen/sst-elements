@@ -40,6 +40,7 @@ public:
 			static_assert( !((copy_round_mode && (!shift_round_mode)) && copy_fp_flags), "Cannot copy round, not shift and copy FP flags\n");
 
 			isa_int_regs_out[0] = dest;
+			isa_int_regs_out_mask_ = (1ULL << dest);
     }
 
     VanadisFPFlagsReadInstruction*  clone() override { return new VanadisFPFlagsReadInstruction(*this); }

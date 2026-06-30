@@ -33,6 +33,8 @@ public:
 
         isa_int_regs_in[0]  = src;
         isa_int_regs_out[0] = dest;
+        isa_int_regs_in_mask_ = (1ULL << src);
+        isa_int_regs_out_mask_ = (1ULL << dest);
     }
 
     VanadisTruncateInstruction* clone() override { return new VanadisTruncateInstruction(*this); }

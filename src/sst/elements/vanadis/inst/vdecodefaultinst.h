@@ -33,7 +33,7 @@ public:
 
     VanadisInstruction* clone() override
     {
-        return new VanadisInstructionDecodeFault(ins_address, hw_thread, isa_options);
+        return new VanadisInstructionDecodeFault(ins_address_, hw_thread_, isa_options);
     }
 
     const char* getInstCode() const override { return "DECODE_FAULT"; }

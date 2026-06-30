@@ -35,6 +35,8 @@ public:
         isa_int_regs_in[1]  = src_2;
         isa_int_regs_out[0] = quo_dest;
         isa_int_regs_out[1] = remain_dest;
+        isa_int_regs_in_mask_ |= (1ULL << src_1) | (1ULL << src_2);
+        isa_int_regs_out_mask_ |= (1ULL << quo_dest) | (1ULL << remain_dest);
     }
 
     VanadisDivideRemainderInstruction* clone() override { return new VanadisDivideRemainderInstruction(*this); }

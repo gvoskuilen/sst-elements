@@ -38,7 +38,7 @@ public:
 
     VanadisInstruction* clone() override
     {
-        return new VanadisInstructionDecodeAlignmentFault(ins_address, hw_thread, isa_options);
+        return new VanadisInstructionDecodeAlignmentFault(ins_address_, hw_thread_, isa_options);
     }
 
     const char* getInstCode() const override { return "ALIGN_FAULT"; }

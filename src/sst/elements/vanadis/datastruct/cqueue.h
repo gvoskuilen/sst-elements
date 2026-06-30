@@ -45,7 +45,9 @@ public:
     bool full() const { return max_capacity == count; }
 
     void push(T item) {
+        #ifdef VANADIS_BUILD_DEBUG
         assert(count < max_capacity);
+        #endif
 
         data[tail] = item;
         tail = incrementIndex(tail);
@@ -53,20 +55,27 @@ public:
     }
 
     T peek() {
+        #ifdef VANADIS_BUILD_DEBUG
         assert(count > 0);
+        #endif
 
         T peek_me = data[head];
         return peek_me;
     }
 
     T peekAt(const size_t index) {
+        #ifdef VANADIS_BUILD_DEBUG
         assert(index < count);
+        #endif
+
         return data[calculateIndex(index)];
     }
 
     T pop()
     {
+        #ifdef VANADIS_BUILD_DEBUG
         assert(count > 0);
+        #endif
 
         T pop_me = data[head];
         head = incrementIndex(head);

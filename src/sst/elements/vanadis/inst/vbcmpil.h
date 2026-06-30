@@ -38,6 +38,8 @@ public:
     {
         isa_int_regs_in[0]  = src_1;
         isa_int_regs_out[0] = link_reg;
+        isa_int_regs_in_mask_ |= (1ULL << src_1);
+        isa_int_regs_out_mask_ |= (1ULL << link_reg);
     }
 
     VanadisBranchRegCompareImmLinkInstruction* clone() override
@@ -75,9 +77,9 @@ public:
             ss << " / imm: " << imm_value << " / offset: " << offset;
             ss << " / isa-link: " <<  isa_int_regs_out[0] << " / phys-link: " << phys_int_regs_out_0;
             if(compare_result)
-            ss << "-----> taken-address: 0x"<<std::hex << takenAddress;
+            ss << "-----> taken-address: 0x"<<std::hex << taken_address_;
             else
-            ss << "-----> not-taken-address: 0x"<<std::hex << takenAddress;
+            ss << "-----> not-taken-address: 0x"<<std::hex << taken_address_;
             output->verbose( CALL_INFO, verboselevel, 0, "%s\n", ss.str().c_str());
         }
         #endif
@@ -88,7 +90,7 @@ public:
     {
         *compare_result = registerCompareImm<compareType, register_format>(regFile, this, output, phys_int_regs_in_0, imm_value);
         if ( *compare_result ) {
-            takenAddress = (uint64_t)(((int64_t)getInstructionAddress()) + offset);
+            taken_address_ = (uint64_t)(((int64_t)getInstructionAddress()) + offset);
 
             // Update the link address
             // The link address is the address of the second instruction after the
@@ -98,7 +100,7 @@ public:
 
         }
         else {
-            takenAddress = calculateStandardNotTakenAddress();
+            taken_address_ = calculateStandardNotTakenAddress();
         }
     }
 

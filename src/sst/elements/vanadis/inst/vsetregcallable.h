@@ -35,6 +35,7 @@ public:
         VanadisInstruction(addr, hw_thr, isa_opts, 0, 1, 0, 1, 0, 0, 0, 0), call_func(call)
     {
         isa_int_regs_out[0] = dest;
+        isa_int_regs_out_mask_ = (1ULL << dest);
     }
 
     VanadisSetRegisterByCallInstruction* clone() override { return new VanadisSetRegisterByCallInstruction(*this); }

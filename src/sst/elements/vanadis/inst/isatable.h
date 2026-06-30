@@ -37,14 +37,14 @@ public:
         count_fp_reg(fp_reg),
         tblName(name)
     {
+        int_reg_pending_write = new uint32_t[int_reg];
+        fp_reg_pending_write  = new uint32_t[fp_reg];
+
         int_reg_ptr = new uint16_t[int_reg];
         fp_reg_ptr  = new uint16_t[fp_reg];
 
         int_reg_pending_read = new uint32_t[int_reg];
         fp_reg_pending_read  = new uint32_t[fp_reg];
-
-        int_reg_pending_write = new uint32_t[int_reg];
-        fp_reg_pending_write  = new uint32_t[fp_reg];
 
         for ( uint16_t i = 0; i < count_int_reg; ++i ) { int_reg_ptr[i] = 0; }
         for ( uint16_t i = 0; i < count_fp_reg; ++i )  { fp_reg_ptr[i]  = 0; }
@@ -61,15 +61,18 @@ public:
             fp_reg_pending_read[i]  = 0;
             fp_reg_pending_write[i] = 0;
         }
+        
+        int_reg_pending_write_mask_ = 0;
+        fp_reg_pending_write_mask_ = 0;
     }
 
     ~VanadisISATable()
     {
         delete[] int_reg_ptr;
         delete[] int_reg_pending_read;
-        delete[] int_reg_pending_write;
         delete[] fp_reg_ptr;
         delete[] fp_reg_pending_read;
+        delete[] int_reg_pending_write;            
         delete[] fp_reg_pending_write;
     }
 
@@ -91,7 +94,23 @@ public:
 
     void incIntWrite(const uint16_t int_reg)
     {
-        if ( int_reg != decoder_opts->getRegisterIgnoreWrites() ) { int_reg_pending_write[int_reg]++; }
+        if ( int_reg != decoder_opts->getRegisterIgnoreWrites() ) {
+            if ( int_reg < 64 && 0 == int_reg_pending_write[int_reg] ) { // Common
+                int_reg_pending_write_mask_ |= (1ULL << int_reg);
+            }
+            int_reg_pending_write[int_reg]++;
+        }
+    }
+
+    void decIntWrite(const uint16_t int_reg)
+    {
+        if ( int_reg != decoder_opts->getRegisterIgnoreWrites() ) {
+            assert(int_reg_pending_write[int_reg] > 0);
+            int_reg_pending_write[int_reg]--;
+            if ( int_reg < 64 && 0 == int_reg_pending_write[int_reg] ) { // Common
+                int_reg_pending_write_mask_ &= ~(1ULL << int_reg);
+            }
+        }
     }
 
     void decIntRead(const uint16_t int_reg)
@@ -99,18 +118,26 @@ public:
         if ( int_reg != decoder_opts->getRegisterIgnoreWrites() ) { int_reg_pending_read[int_reg]--; }
     }
 
-    void decIntWrite(const uint16_t int_reg)
-    {
-        if ( int_reg != decoder_opts->getRegisterIgnoreWrites() ) { int_reg_pending_write[int_reg]--; }
-    }
-
     void incFPRead(const uint16_t fp_reg) { fp_reg_pending_read[fp_reg]++; }
-
-    void incFPWrite(const uint16_t fp_reg) { fp_reg_pending_write[fp_reg]++; }
 
     void decFPRead(const uint16_t fp_reg) { fp_reg_pending_read[fp_reg]--; }
 
-    void decFPWrite(const uint16_t fp_reg) { fp_reg_pending_write[fp_reg]--; }
+    void incFPWrite(const uint16_t fp_reg) {
+        if ( fp_reg < 64 && 0 == fp_reg_pending_write[fp_reg] ) {
+            fp_reg_pending_write_mask_ |= (1ULL << fp_reg);
+        }
+        fp_reg_pending_write[fp_reg]++;
+    }
+
+    void decFPWrite(const uint16_t fp_reg) {
+        #ifdef VANADIS_BUILD_DEBUG
+        assert(fp_reg_pending_write[fp_reg] > 0);
+        #endif
+        fp_reg_pending_write[fp_reg]--;
+        if ( fp_reg < 64 && 0 == fp_reg_pending_write[fp_reg] ) {
+            fp_reg_pending_write_mask_ &= ~(1ULL << fp_reg);
+        }
+    }
 
     void setIntPhysReg(const uint16_t int_reg, const uint16_t phys_reg) { int_reg_ptr[int_reg] = phys_reg; }
 
@@ -120,8 +147,13 @@ public:
 
     uint16_t getFPPhysReg(const uint16_t fp_reg) { assert(fp_reg < count_fp_reg); return fp_reg_ptr[fp_reg]; }
 
+    // These are only used for very large register counts
     const uint32_t* getPendingIntWriteArray() const { return int_reg_pending_write; }
     const uint32_t* getPendingFPWriteArray() const { return fp_reg_pending_write; }
+
+    // These are only used for smaller register counts
+    uint64_t getPendingIntWriteMask() const { return int_reg_pending_write_mask_; }
+    uint64_t getPendingFPWriteMask() const { return fp_reg_pending_write_mask_; }
 
     void reset(VanadisISATable* tbl)
     {
@@ -136,6 +168,9 @@ public:
             fp_reg_pending_read[i]  = tbl->fp_reg_pending_read[i];
             fp_reg_pending_write[i] = tbl->fp_reg_pending_write[i];
         }
+        
+        int_reg_pending_write_mask_ = tbl->int_reg_pending_write_mask_;
+        fp_reg_pending_write_mask_  = tbl->fp_reg_pending_write_mask_;
     }
 
     void print(SST::Output* output, VanadisRegisterFile* regFile, bool print_int, bool print_fp)
@@ -228,7 +263,7 @@ protected:
 
         return found;
     }
-
+    
     const uint16_t count_int_reg;
     const uint16_t count_fp_reg;
 
@@ -240,6 +275,9 @@ protected:
 
     uint32_t* int_reg_pending_write;
     uint32_t* fp_reg_pending_write;
+
+    uint64_t int_reg_pending_write_mask_ = 0;
+    uint64_t fp_reg_pending_write_mask_  = 0;
 
     const VanadisDecoderOptions* decoder_opts;
 

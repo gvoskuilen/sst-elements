@@ -49,10 +49,14 @@ public:
             isa_fp_regs_in[1]  = src_1 + 1;
             isa_fp_regs_out[0] = dest;
             isa_fp_regs_out[1] = dest + 1;
+            isa_fp_regs_in_mask_ = (3ULL << src_1);
+            isa_fp_regs_out_mask_ = (3ULL << dest);
         }
         else {
             isa_fp_regs_in[0]  = src_1;
             isa_fp_regs_out[0] = dest;
+            isa_fp_regs_in_mask_ = (1ULL << src_1);
+            isa_fp_regs_out_mask_ = (1ULL << dest);
         }
     }
 

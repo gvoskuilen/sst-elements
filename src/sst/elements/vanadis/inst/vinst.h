@@ -34,449 +34,506 @@ namespace SST {
 namespace Vanadis {
 class VanadisInstruction
 {
-    public:
-        VanadisInstruction(const uint64_t address, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts,
-            const uint16_t c_phys_int_reg_in, const uint16_t c_phys_int_reg_out, const uint16_t c_isa_int_reg_in,
-            const uint16_t c_isa_int_reg_out, const uint16_t c_phys_fp_reg_in, const uint16_t c_phys_fp_reg_out,
-            const uint16_t c_isa_fp_reg_in, const uint16_t c_isa_fp_reg_out) :
-            ins_address(address),
-            hw_thread(hw_thr),
-            isa_options(isa_opts),
-            count_phys_int_reg_in(c_phys_int_reg_in),
-            count_phys_int_reg_out(c_phys_int_reg_out),
-            count_isa_int_reg_in(c_isa_int_reg_in),
-            count_isa_int_reg_out(c_isa_int_reg_out),
-            count_phys_fp_reg_in(c_phys_fp_reg_in),
-            count_phys_fp_reg_out(c_phys_fp_reg_out),
-            count_isa_fp_reg_in(c_isa_fp_reg_in),
-            count_isa_fp_reg_out(c_isa_fp_reg_out)
-        {
-            phys_int_regs_in = (count_phys_int_reg_in > 0) ? new uint16_t[count_phys_int_reg_in] : nullptr;
-            std::memset(phys_int_regs_in, 0, count_phys_int_reg_in * sizeof( uint16_t ));
+public:
+    VanadisInstruction(const uint64_t address, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts,
+        const uint16_t c_phys_int_reg_in, const uint16_t c_phys_int_reg_out, const uint16_t c_isa_int_reg_in,
+        const uint16_t c_isa_int_reg_out, const uint16_t c_phys_fp_reg_in, const uint16_t c_phys_fp_reg_out,
+        const uint16_t c_isa_fp_reg_in, const uint16_t c_isa_fp_reg_out) :
+        ins_address_(address),
+        hw_thread_(hw_thr),
+        isa_options(isa_opts),
+        count_phys_int_reg_in(c_phys_int_reg_in),
+        count_phys_int_reg_out(c_phys_int_reg_out),
+        count_isa_int_reg_in(c_isa_int_reg_in),
+        count_isa_int_reg_out(c_isa_int_reg_out),
+        count_phys_fp_reg_in(c_phys_fp_reg_in),
+        count_phys_fp_reg_out(c_phys_fp_reg_out),
+        count_isa_fp_reg_in(c_isa_fp_reg_in),
+        count_isa_fp_reg_out(c_isa_fp_reg_out)
+    {
+        phys_int_regs_in = (count_phys_int_reg_in > 0) ? new uint16_t[count_phys_int_reg_in] : nullptr;
+        std::memset(phys_int_regs_in, 0, count_phys_int_reg_in * sizeof( uint16_t ));
 
-            phys_int_regs_out = (count_phys_int_reg_out > 0) ? new uint16_t[count_phys_int_reg_out] : nullptr;
-            std::memset(phys_int_regs_out, 0, count_phys_int_reg_out * sizeof( uint16_t ) );
+        phys_int_regs_out = (count_phys_int_reg_out > 0) ? new uint16_t[count_phys_int_reg_out] : nullptr;
+        std::memset(phys_int_regs_out, 0, count_phys_int_reg_out * sizeof( uint16_t ) );
 
-            isa_int_regs_in = (count_isa_int_reg_in > 0) ? new uint16_t[count_isa_int_reg_in] : nullptr;
-            std::memset(isa_int_regs_in, 0, count_isa_int_reg_in * sizeof( uint16_t ));
+        isa_int_regs_in = (count_isa_int_reg_in > 0) ? new uint16_t[count_isa_int_reg_in] : nullptr;
+        std::memset(isa_int_regs_in, 0, count_isa_int_reg_in * sizeof( uint16_t ));
 
-            isa_int_regs_out = (count_isa_int_reg_out > 0) ? new uint16_t[count_isa_int_reg_out] : nullptr;
-            std::memset(isa_int_regs_out, 0, count_isa_int_reg_out * sizeof( uint16_t ) );
+        isa_int_regs_out = (count_isa_int_reg_out > 0) ? new uint16_t[count_isa_int_reg_out] : nullptr;
+        std::memset(isa_int_regs_out, 0, count_isa_int_reg_out * sizeof( uint16_t ) );
 
-            phys_fp_regs_in = (count_phys_fp_reg_in > 0) ? new uint16_t[count_phys_fp_reg_in] : nullptr;
-            std::memset(phys_fp_regs_in, 0, count_phys_fp_reg_in * sizeof( uint16_t ));
+        phys_fp_regs_in = (count_phys_fp_reg_in > 0) ? new uint16_t[count_phys_fp_reg_in] : nullptr;
+        std::memset(phys_fp_regs_in, 0, count_phys_fp_reg_in * sizeof( uint16_t ));
 
-            phys_fp_regs_out = (count_phys_fp_reg_out > 0) ? new uint16_t[count_phys_fp_reg_out] : nullptr;
-            std::memset(phys_fp_regs_out, 0, count_phys_fp_reg_out * sizeof( uint16_t ));
+        phys_fp_regs_out = (count_phys_fp_reg_out > 0) ? new uint16_t[count_phys_fp_reg_out] : nullptr;
+        std::memset(phys_fp_regs_out, 0, count_phys_fp_reg_out * sizeof( uint16_t ));
 
-            isa_fp_regs_in = (count_isa_fp_reg_in > 0) ? new uint16_t[count_isa_fp_reg_in] : nullptr;
-            std::memset(isa_fp_regs_in, 0, count_isa_fp_reg_in * sizeof( uint16_t ) );
+        isa_fp_regs_in = (count_isa_fp_reg_in > 0) ? new uint16_t[count_isa_fp_reg_in] : nullptr;
+        std::memset(isa_fp_regs_in, 0, count_isa_fp_reg_in * sizeof( uint16_t ) );
 
-            isa_fp_regs_out = (count_isa_fp_reg_out > 0) ? new uint16_t[count_isa_fp_reg_out] : nullptr;
-            std::memset(isa_fp_regs_out, 0, count_isa_fp_reg_out * sizeof( uint16_t ));
+        isa_fp_regs_out = (count_isa_fp_reg_out > 0) ? new uint16_t[count_isa_fp_reg_out] : nullptr;
+        std::memset(isa_fp_regs_out, 0, count_isa_fp_reg_out * sizeof( uint16_t ));
 
-            trap_error_           = false;
-            has_executed_         = false;
-            has_issued_           = false;
-            end_uop_group_        = false;
-            is_front_of_rob_      = false;
-            has_rob_slot_         = false;
-            sw_thread             = hw_thr;
+        trap_error_           = false;
+        has_executed_         = false;
+        has_issued_           = false;
+        end_uop_group_        = false;
+        is_front_of_rob_      = false;
+        has_rob_slot_         = false;
+        sw_thread             = hw_thr;
+    }
+
+    virtual ~VanadisInstruction()
+    {
+        if ( phys_int_regs_in != nullptr ) delete[] phys_int_regs_in;
+        if ( phys_int_regs_out != nullptr ) delete[] phys_int_regs_out;
+        if ( isa_int_regs_in != nullptr ) delete[] isa_int_regs_in;
+        if ( isa_int_regs_out != nullptr ) delete[] isa_int_regs_out;
+        if ( phys_fp_regs_in != nullptr ) delete[] phys_fp_regs_in;
+        if ( phys_fp_regs_out != nullptr ) delete[] phys_fp_regs_out;
+        if ( isa_fp_regs_in != nullptr ) delete[] isa_fp_regs_in;
+        if ( isa_fp_regs_out != nullptr ) delete[] isa_fp_regs_out;
+    }
+
+    VanadisInstruction(const VanadisInstruction& copy_me) :
+        ins_address_(copy_me.ins_address_),
+        hw_thread_(copy_me.hw_thread_),
+        isa_options(copy_me.isa_options),
+        count_phys_int_reg_in(copy_me.count_phys_int_reg_in),
+        count_phys_int_reg_out(copy_me.count_phys_int_reg_out),
+        count_isa_int_reg_in(copy_me.count_isa_int_reg_in),
+        count_isa_int_reg_out(copy_me.count_isa_int_reg_out),
+        count_phys_fp_reg_in(copy_me.count_phys_fp_reg_in),
+        count_phys_fp_reg_out(copy_me.count_phys_fp_reg_out),
+        count_isa_fp_reg_in(copy_me.count_isa_fp_reg_in),
+        count_isa_fp_reg_out(copy_me.count_isa_fp_reg_out),
+        isa_int_regs_in_mask_(copy_me.isa_int_regs_in_mask_),
+        isa_int_regs_out_mask_(copy_me.isa_int_regs_out_mask_),
+        isa_fp_regs_in_mask_(copy_me.isa_fp_regs_in_mask_),
+        isa_fp_regs_out_mask_(copy_me.isa_fp_regs_out_mask_)
+    {
+        trap_error_           = copy_me.trap_error_;
+        has_executed_         = copy_me.has_executed_;
+        has_issued_           = copy_me.has_issued_;
+        end_uop_group_        = copy_me.end_uop_group_;
+        is_front_of_rob_      = false;
+        has_rob_slot_         = false;
+        sw_thread             = copy_me.sw_thread;
+
+        phys_int_regs_in  = (count_phys_int_reg_in > 0) ? new uint16_t[count_phys_int_reg_in] : nullptr;
+        phys_int_regs_out = (count_phys_int_reg_out > 0) ? new uint16_t[count_phys_int_reg_out] : nullptr;
+
+        isa_int_regs_in  = (count_isa_int_reg_in > 0) ? new uint16_t[count_isa_int_reg_in] : nullptr;
+        isa_int_regs_out = (count_isa_int_reg_out > 0) ? new uint16_t[count_isa_int_reg_out] : nullptr;
+
+        phys_fp_regs_in  = (count_phys_fp_reg_in > 0) ? new uint16_t[count_phys_fp_reg_in] : nullptr;
+        phys_fp_regs_out = (count_phys_fp_reg_out > 0) ? new uint16_t[count_phys_fp_reg_out] : nullptr;
+
+        isa_fp_regs_in  = (count_isa_fp_reg_in > 0) ? new uint16_t[count_isa_fp_reg_in] : nullptr;
+        isa_fp_regs_out = (count_isa_fp_reg_out > 0) ? new uint16_t[count_isa_fp_reg_out] : nullptr;
+
+        for ( uint16_t i = 0; i < count_phys_int_reg_in; ++i ) {
+            phys_int_regs_in[i] = copy_me.phys_int_regs_in[i];
         }
 
-        virtual ~VanadisInstruction()
-        {
-            if ( phys_int_regs_in != nullptr ) delete[] phys_int_regs_in;
-            if ( phys_int_regs_out != nullptr ) delete[] phys_int_regs_out;
-            if ( isa_int_regs_in != nullptr ) delete[] isa_int_regs_in;
-            if ( isa_int_regs_out != nullptr ) delete[] isa_int_regs_out;
-            if ( phys_fp_regs_in != nullptr ) delete[] phys_fp_regs_in;
-            if ( phys_fp_regs_out != nullptr ) delete[] phys_fp_regs_out;
-            if ( isa_fp_regs_in != nullptr ) delete[] isa_fp_regs_in;
-            if ( isa_fp_regs_out != nullptr ) delete[] isa_fp_regs_out;
+        for ( uint16_t i = 0; i < count_phys_int_reg_out; ++i ) {
+            phys_int_regs_out[i] = copy_me.phys_int_regs_out[i];
         }
 
-        VanadisInstruction(const VanadisInstruction& copy_me) :
-            ins_address(copy_me.ins_address),
-            hw_thread(copy_me.hw_thread),
-            isa_options(copy_me.isa_options),
-            count_phys_int_reg_in(copy_me.count_phys_int_reg_in),
-            count_phys_int_reg_out(copy_me.count_phys_int_reg_out),
-            count_isa_int_reg_in(copy_me.count_isa_int_reg_in),
-            count_isa_int_reg_out(copy_me.count_isa_int_reg_out),
-            count_phys_fp_reg_in(copy_me.count_phys_fp_reg_in),
-            count_phys_fp_reg_out(copy_me.count_phys_fp_reg_out),
-            count_isa_fp_reg_in(copy_me.count_isa_fp_reg_in),
-            count_isa_fp_reg_out(copy_me.count_isa_fp_reg_out)
-        {
-            trap_error_           = copy_me.trap_error_;
-            has_executed_         = copy_me.has_executed_;
-            has_issued_           = copy_me.has_issued_;
-            end_uop_group_        = copy_me.end_uop_group_;
-            is_front_of_rob_      = false;
-            has_rob_slot_         = false;
-            sw_thread             = copy_me.sw_thread;
-
-            phys_int_regs_in  = (count_phys_int_reg_in > 0) ? new uint16_t[count_phys_int_reg_in] : nullptr;
-            phys_int_regs_out = (count_phys_int_reg_out > 0) ? new uint16_t[count_phys_int_reg_out] : nullptr;
-
-            isa_int_regs_in  = (count_isa_int_reg_in > 0) ? new uint16_t[count_isa_int_reg_in] : nullptr;
-            isa_int_regs_out = (count_isa_int_reg_out > 0) ? new uint16_t[count_isa_int_reg_out] : nullptr;
-
-            phys_fp_regs_in  = (count_phys_fp_reg_in > 0) ? new uint16_t[count_phys_fp_reg_in] : nullptr;
-            phys_fp_regs_out = (count_phys_fp_reg_out > 0) ? new uint16_t[count_phys_fp_reg_out] : nullptr;
-
-            isa_fp_regs_in  = (count_isa_fp_reg_in > 0) ? new uint16_t[count_isa_fp_reg_in] : nullptr;
-            isa_fp_regs_out = (count_isa_fp_reg_out > 0) ? new uint16_t[count_isa_fp_reg_out] : nullptr;
-
-            for ( uint16_t i = 0; i < count_phys_int_reg_in; ++i ) {
-                phys_int_regs_in[i] = copy_me.phys_int_regs_in[i];
-            }
-
-            for ( uint16_t i = 0; i < count_phys_int_reg_out; ++i ) {
-                phys_int_regs_out[i] = copy_me.phys_int_regs_out[i];
-            }
-
-            for ( uint16_t i = 0; i < count_isa_int_reg_in; ++i ) {
-                isa_int_regs_in[i] = copy_me.isa_int_regs_in[i];
-            }
-
-            for ( uint16_t i = 0; i < count_isa_int_reg_out; ++i ) {
-                isa_int_regs_out[i] = copy_me.isa_int_regs_out[i];
-            }
-
-            for ( uint16_t i = 0; i < count_phys_fp_reg_in; ++i ) {
-                phys_fp_regs_in[i] = copy_me.phys_fp_regs_in[i];
-            }
-
-            for ( uint16_t i = 0; i < count_phys_fp_reg_out; ++i ) {
-                phys_fp_regs_out[i] = copy_me.phys_fp_regs_out[i];
-            }
-
-            for ( uint16_t i = 0; i < count_isa_fp_reg_in; ++i ) {
-                isa_fp_regs_in[i] = copy_me.isa_fp_regs_in[i];
-            }
-
-            for ( uint16_t i = 0; i < count_isa_fp_reg_out; ++i ) {
-                isa_fp_regs_out[i] = copy_me.isa_fp_regs_out[i];
-            }
+        for ( uint16_t i = 0; i < count_isa_int_reg_in; ++i ) {
+            isa_int_regs_in[i] = copy_me.isa_int_regs_in[i];
         }
 
-        // different
-        void writeIntRegs(char* buffer, size_t max_buff_size)
-        {
-            size_t index_so_far = 0;
+        for ( uint16_t i = 0; i < count_isa_int_reg_out; ++i ) {
+            isa_int_regs_out[i] = copy_me.isa_int_regs_out[i];
+        }
 
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "in: { ");
+        for ( uint16_t i = 0; i < count_phys_fp_reg_in; ++i ) {
+            phys_fp_regs_in[i] = copy_me.phys_fp_regs_in[i];
+        }
 
-            if ( count_isa_int_reg_in > 0 ) {
+        for ( uint16_t i = 0; i < count_phys_fp_reg_out; ++i ) {
+            phys_fp_regs_out[i] = copy_me.phys_fp_regs_out[i];
+        }
+
+        for ( uint16_t i = 0; i < count_isa_fp_reg_in; ++i ) {
+            isa_fp_regs_in[i] = copy_me.isa_fp_regs_in[i];
+        }
+
+        for ( uint16_t i = 0; i < count_isa_fp_reg_out; ++i ) {
+            isa_fp_regs_out[i] = copy_me.isa_fp_regs_out[i];
+        }
+    }
+
+    // different
+    void writeIntRegs(char* buffer, size_t max_buff_size)
+    {
+        size_t index_so_far = 0;
+
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "in: { ");
+
+        if ( count_isa_int_reg_in > 0 ) {
+            index_so_far +=
+                snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", isa_int_regs_in[0]);
+
+            for ( int i = 1; i < count_isa_int_reg_in; ++i ) {
                 index_so_far +=
-                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", isa_int_regs_in[0]);
-
-                for ( int i = 1; i < count_isa_int_reg_in; ++i ) {
-                    index_so_far +=
-                        snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", isa_int_regs_in[i]);
-                }
+                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", isa_int_regs_in[i]);
             }
-
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } -> { ");
-
-            if ( count_phys_int_reg_in > 0 ) {
-                index_so_far +=
-                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", phys_int_regs_in[0]);
-
-                for ( int i = 1; i < count_phys_int_reg_in; ++i ) {
-                    index_so_far +=
-                        snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", phys_int_regs_in[i]);
-                }
-            }
-
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } / out: { ");
-
-            if ( count_isa_int_reg_out > 0 ) {
-                index_so_far +=
-                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", isa_int_regs_out[0]);
-
-                for ( int i = 1; i < count_isa_int_reg_out; ++i ) {
-                    index_so_far +=
-                        snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", isa_int_regs_out[i]);
-                }
-            }
-
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } -> { ");
-
-            if ( count_phys_int_reg_out > 0 ) {
-                index_so_far +=
-                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", phys_int_regs_out[0]);
-
-                for ( int i = 1; i < count_phys_int_reg_out; ++i ) {
-                    index_so_far += snprintf(
-                        &buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", phys_int_regs_out[i]);
-                }
-            }
-
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " }");
         }
 
-        // different
-        void writeFPRegs(char* buffer, size_t max_buff_size)
-        {
-            size_t index_so_far = 0;
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } -> { ");
 
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "in: { ");
+        if ( count_phys_int_reg_in > 0 ) {
+            index_so_far +=
+                snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", phys_int_regs_in[0]);
 
-            if ( count_isa_fp_reg_in > 0 ) {
+            for ( int i = 1; i < count_phys_int_reg_in; ++i ) {
                 index_so_far +=
-                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", isa_fp_regs_in[0]);
-
-                for ( int i = 1; i < count_isa_fp_reg_in; ++i ) {
-                    index_so_far +=
-                        snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", isa_fp_regs_in[i]);
-                }
+                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", phys_int_regs_in[i]);
             }
+        }
 
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } -> { ");
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } / out: { ");
 
-            if ( count_phys_fp_reg_in > 0 ) {
+        if ( count_isa_int_reg_out > 0 ) {
+            index_so_far +=
+                snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", isa_int_regs_out[0]);
+
+            for ( int i = 1; i < count_isa_int_reg_out; ++i ) {
                 index_so_far +=
-                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", phys_fp_regs_in[0]);
-
-                for ( int i = 1; i < count_phys_fp_reg_in; ++i ) {
-                    index_so_far +=
-                        snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", phys_fp_regs_in[i]);
-                }
+                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", isa_int_regs_out[i]);
             }
+        }
 
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } / out: { ");
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } -> { ");
 
-            if ( count_isa_fp_reg_out > 0 ) {
+        if ( count_phys_int_reg_out > 0 ) {
+            index_so_far +=
+                snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", phys_int_regs_out[0]);
+
+            for ( int i = 1; i < count_phys_int_reg_out; ++i ) {
+                index_so_far += snprintf(
+                    &buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", phys_int_regs_out[i]);
+            }
+        }
+
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " }");
+    }
+
+    // different
+    void writeFPRegs(char* buffer, size_t max_buff_size)
+    {
+        size_t index_so_far = 0;
+
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "in: { ");
+
+        if ( count_isa_fp_reg_in > 0 ) {
+            index_so_far +=
+                snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", isa_fp_regs_in[0]);
+
+            for ( int i = 1; i < count_isa_fp_reg_in; ++i ) {
                 index_so_far +=
-                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", isa_fp_regs_out[0]);
-
-                for ( int i = 1; i < count_isa_fp_reg_out; ++i ) {
-                    index_so_far +=
-                        snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", isa_fp_regs_out[i]);
-                }
+                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", isa_fp_regs_in[i]);
             }
+        }
 
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } -> { ");
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } -> { ");
 
-            if ( count_phys_fp_reg_out > 0 ) {
+        if ( count_phys_fp_reg_in > 0 ) {
+            index_so_far +=
+                snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", phys_fp_regs_in[0]);
+
+            for ( int i = 1; i < count_phys_fp_reg_in; ++i ) {
                 index_so_far +=
-                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", phys_fp_regs_out[0]);
-
-                for ( int i = 1; i < count_phys_fp_reg_out; ++i ) {
-                    index_so_far +=
-                        snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", phys_fp_regs_out[i]);
-                }
+                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", phys_fp_regs_in[i]);
             }
-
-            index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " }");
         }
 
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } / out: { ");
 
-        uint16_t countPhysIntRegIn() const { return count_phys_int_reg_in; }
-        uint16_t countPhysIntRegOut() const { return count_phys_int_reg_out; }
-        uint16_t countPhysFPRegIn() const { return count_phys_fp_reg_in; }
-        uint16_t countPhysFPRegOut() const { return count_phys_fp_reg_out; }
+        if ( count_isa_fp_reg_out > 0 ) {
+            index_so_far +=
+                snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", isa_fp_regs_out[0]);
 
-
-        uint16_t countISAIntRegIn() const { return count_isa_int_reg_in; }
-        uint16_t countISAIntRegOut() const { return count_isa_int_reg_out; }
-        uint16_t countISAFPRegIn() const { return count_isa_fp_reg_in; }
-        uint16_t countISAFPRegOut() const { return count_isa_fp_reg_out; }
-
-        uint16_t getPhysIntRegIn(const uint16_t index) const { return phys_int_regs_in[index]; }
-        uint16_t getPhysIntRegOut(const uint16_t index) const { return phys_int_regs_out[index]; }
-        uint16_t getISAIntRegIn(const uint16_t index) const { return isa_int_regs_in[index]; }
-        uint16_t getISAIntRegOut(const uint16_t index) const { return isa_int_regs_out[index]; }
-
-
-        uint16_t getPhysFPRegIn(const uint16_t index) const { return phys_fp_regs_in[index]; }
-        uint16_t getPhysFPRegOut(const uint16_t index) const { return phys_fp_regs_out[index]; }
-        uint16_t getISAFPRegIn(const uint16_t index) const { return isa_fp_regs_in[index]; }
-        uint16_t getISAFPRegOut(const uint16_t index) const { return isa_fp_regs_out[index]; }
-
-        void setPhysIntRegIn(const uint16_t index, const uint16_t reg) { phys_int_regs_in[index] = reg; }
-        void setPhysIntRegOut(const uint16_t index, const uint16_t reg) { phys_int_regs_out[index] = reg; }
-        void setPhysFPRegIn(const uint16_t index, const uint16_t reg) { phys_fp_regs_in[index] = reg; }
-        void setPhysFPRegOut(const uint16_t index, const uint16_t reg) { phys_fp_regs_out[index] = reg; }
-
-        virtual VanadisInstruction* clone() = 0;
-
-        void markEndOfMicroOpGroup() { end_uop_group_ = true; }
-        bool endsMicroOpGroup() const { return end_uop_group_; }
-        bool trapsError() const { return trap_error_; }
-
-        uint64_t getInstructionAddress() const { return ins_address; }
-        uint32_t getHWThread() const { return hw_thread; }
-
-        void setSWThread(uint32_t thr) { sw_thread=thr;}
-        uint32_t getSWThread() {return sw_thread;}
-
-        virtual const char* getInstCode() const = 0 ;
-
-        virtual void printToBuffer(char* buffer, size_t buffer_size) { snprintf(buffer, buffer_size, "%s", getInstCode()); }
-
-        virtual VanadisFunctionalUnitType getInstFuncType() const = 0;
-
-
-        virtual void instOp(VanadisRegisterFile* regFile,
-                            uint16_t phys_int_regs_out_0, uint16_t phys_int_regs_in_0,
-                            uint16_t phys_int_regs_in_1)
-        {
-            ;
-        }
-
-        virtual void instOp(VanadisRegisterFile* regFile,
-                                uint16_t phys_int_regs_out_0, uint16_t phys_int_regs_in_0)
-        {
-            ;
-        }
-
-        virtual void scalarExecute(SST::Output* output, VanadisRegisterFile* regFile)
-        {
-            uint16_t phys_int_regs_out_0 = getPhysIntRegOut(0);
-            uint16_t phys_int_regs_in_0 = getPhysIntRegIn(0);
-            uint16_t phys_int_regs_in_1 = getPhysIntRegIn(1);
-            #ifdef VANADIS_BUILD_DEBUG
-            log(output, 16, 65535,phys_int_regs_out_0,phys_int_regs_in_0,phys_int_regs_in_1);
-            #endif
-            instOp(regFile,phys_int_regs_out_0, phys_int_regs_in_0, phys_int_regs_in_1);
-            markExecuted();
-        }
-
-        virtual void log(SST::Output* output, int verboselevel, uint16_t sw_thr,
-                uint16_t phys_int_regs_out_0,uint16_t phys_int_regs_in_0)
-        {
-            #ifdef VANADIS_BUILD_DEBUG
-            if(output->getVerboseLevel() >= verboselevel) {
-
-                std::ostringstream ss;
-                ss << "hw_thr="<<getHWThread()<<" sw_thr=" <<sw_thr;
-                ss << " Execute: 0x" << std::hex << getInstructionAddress() << std::dec << " " << getInstCode();
-                ss << " phys: out=" <<  phys_int_regs_out_0 << " in=" << phys_int_regs_in_0;
-                // ss << " imm=" << imm_value;
-                ss << ", isa: out=" <<  isa_int_regs_out[0]  << " in=" << isa_int_regs_in[0];
-                output->verbose( CALL_INFO, verboselevel, 0, "%s\n", ss.str().c_str());
+            for ( int i = 1; i < count_isa_fp_reg_out; ++i ) {
+                index_so_far +=
+                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", isa_fp_regs_out[i]);
             }
-            #endif
         }
 
-        virtual void  execute(SST::Output* output, std::vector<VanadisRegisterFile*>& regFiles)
-        {
-            scalarExecute(output, regFiles[hw_thread]);
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " } -> { ");
+
+        if ( count_phys_fp_reg_out > 0 ) {
+            index_so_far +=
+                snprintf(&buffer[index_so_far], max_buff_size - index_so_far, "%" PRIu16 "", phys_fp_regs_out[0]);
+
+            for ( int i = 1; i < count_phys_fp_reg_out; ++i ) {
+                index_so_far +=
+                    snprintf(&buffer[index_so_far], max_buff_size - index_so_far, ", %" PRIu16 "", phys_fp_regs_out[i]);
+            }
         }
 
-        virtual void log(SST::Output* output, int verboselevel, uint16_t sw_thr,
-                            uint16_t phys_int_regs_out_0,uint16_t phys_int_regs_in_0,
-                                    uint16_t phys_int_regs_in_1)
-        {
-            #ifdef VANADIS_BUILD_DEBUG
-            if(output->getVerboseLevel() >= verboselevel) {
-                std::string instcode = getInstCode();
-                std::string fpinst = "FP";
-                if(instcode.find(fpinst) != std::string::npos )
-                {
-                    output->verbose(
-                    CALL_INFO, verboselevel, 0,
-                    "hw_thr=%d sw_thr = %d Execute: 0x%" PRI_ADDR " %s phys: out=%" PRIu16 " in=%" PRIu16 ", %" PRIu16 ", isa: out=%" PRIu16
-                    " / in=%" PRIu16 ", %" PRIu16 "\n",
-                    getHWThread(),sw_thr, getInstructionAddress(), getInstCode(), phys_int_regs_out_0, phys_int_regs_in_0,
-                    phys_int_regs_in_1, isa_fp_regs_out[0], isa_fp_regs_in[0], isa_fp_regs_in[1]);
-                }
-                else
+        index_so_far += snprintf(&buffer[index_so_far], max_buff_size - index_so_far, " }");
+    }
+
+
+    uint16_t countPhysIntRegIn() const { return count_phys_int_reg_in; }
+    uint16_t countPhysIntRegOut() const { return count_phys_int_reg_out; }
+    uint16_t countPhysFPRegIn() const { return count_phys_fp_reg_in; }
+    uint16_t countPhysFPRegOut() const { return count_phys_fp_reg_out; }
+
+
+    uint16_t countISAIntRegIn() const { return count_isa_int_reg_in; }
+    uint16_t countISAIntRegOut() const { return count_isa_int_reg_out; }
+    uint16_t countISAFPRegIn() const { return count_isa_fp_reg_in; }
+    uint16_t countISAFPRegOut() const { return count_isa_fp_reg_out; }
+
+    uint16_t getPhysIntRegIn(const uint16_t index) const { return phys_int_regs_in[index]; }
+    uint16_t getPhysIntRegOut(const uint16_t index) const { return phys_int_regs_out[index]; }
+    uint16_t getISAIntRegIn(const uint16_t index) const { return isa_int_regs_in[index]; }
+    uint16_t getISAIntRegOut(const uint16_t index) const { return isa_int_regs_out[index]; }
+
+
+    uint16_t getPhysFPRegIn(const uint16_t index) const { return phys_fp_regs_in[index]; }
+    uint16_t getPhysFPRegOut(const uint16_t index) const { return phys_fp_regs_out[index]; }
+    uint16_t getISAFPRegIn(const uint16_t index) const { return isa_fp_regs_in[index]; }
+    uint16_t getISAFPRegOut(const uint16_t index) const { return isa_fp_regs_out[index]; }
+
+    uint64_t getISAIntRegInMask() const { return isa_int_regs_in_mask_; }
+    uint64_t getISAIntRegOutMask() const { return isa_int_regs_out_mask_; }
+    uint64_t getISAFPRegInMask() const { return isa_fp_regs_in_mask_; }
+    uint64_t getISAFPRegOutMask() const { return isa_fp_regs_out_mask_; }
+
+    void setPhysIntRegIn(const uint16_t index, const uint16_t reg) { phys_int_regs_in[index] = reg; }
+    void setPhysIntRegOut(const uint16_t index, const uint16_t reg) { phys_int_regs_out[index] = reg; }
+    void setPhysFPRegIn(const uint16_t index, const uint16_t reg) { phys_fp_regs_in[index] = reg; }
+    void setPhysFPRegOut(const uint16_t index, const uint16_t reg) { phys_fp_regs_out[index] = reg; }
+
+    virtual VanadisInstruction* clone() = 0;
+
+    void markEndOfMicroOpGroup() { end_uop_group_ = true; }
+    bool endsMicroOpGroup() const { return end_uop_group_; }
+    bool trapsError() const { return trap_error_; }
+
+    uint64_t getInstructionAddress() const { return ins_address_; }
+    uint32_t getHWThread() const { return hw_thread_; }
+
+    void setSWThread(uint32_t thr) { sw_thread=thr;}
+    uint32_t getSWThread() {return sw_thread;}
+
+    virtual const char* getInstCode() const = 0 ;
+
+    virtual void printToBuffer(char* buffer, size_t buffer_size) { snprintf(buffer, buffer_size, "%s", getInstCode()); }
+
+    virtual VanadisFunctionalUnitType getInstFuncType() const = 0;
+
+
+    virtual void instOp(VanadisRegisterFile* regFile,
+                        uint16_t phys_int_regs_out_0, uint16_t phys_int_regs_in_0,
+                        uint16_t phys_int_regs_in_1)
+    {
+        ;
+    }
+
+    virtual void instOp(VanadisRegisterFile* regFile,
+                            uint16_t phys_int_regs_out_0, uint16_t phys_int_regs_in_0)
+    {
+        ;
+    }
+
+    virtual void scalarExecute(SST::Output* output, VanadisRegisterFile* regFile)
+    {
+        uint16_t phys_int_regs_out_0 = getPhysIntRegOut(0);
+        uint16_t phys_int_regs_in_0 = getPhysIntRegIn(0);
+        uint16_t phys_int_regs_in_1 = getPhysIntRegIn(1);
+        #ifdef VANADIS_BUILD_DEBUG
+        log(output, 16, 65535,phys_int_regs_out_0,phys_int_regs_in_0,phys_int_regs_in_1);
+        #endif
+        instOp(regFile,phys_int_regs_out_0, phys_int_regs_in_0, phys_int_regs_in_1);
+        markExecuted();
+    }
+
+    virtual void log(SST::Output* output, int verboselevel, uint16_t sw_thr,
+            uint16_t phys_int_regs_out_0,uint16_t phys_int_regs_in_0)
+    {
+        #ifdef VANADIS_BUILD_DEBUG
+        if(output->getVerboseLevel() >= verboselevel) {
+
+            std::ostringstream ss;
+            ss << "hw_thr="<<getHWThread()<<" sw_thr=" <<sw_thr;
+            ss << " Execute: 0x" << std::hex << getInstructionAddress() << std::dec << " " << getInstCode();
+            ss << " phys: out=" <<  phys_int_regs_out_0 << " in=" << phys_int_regs_in_0;
+            // ss << " imm=" << imm_value;
+            ss << ", isa: out=" <<  isa_int_regs_out[0]  << " in=" << isa_int_regs_in[0];
+            output->verbose( CALL_INFO, verboselevel, 0, "%s\n", ss.str().c_str());
+        }
+        #endif
+    }
+
+    virtual void  execute(SST::Output* output, std::vector<VanadisRegisterFile*>& regFiles)
+    {
+        scalarExecute(output, regFiles[hw_thread_]);
+    }
+
+    virtual void log(SST::Output* output, int verboselevel, uint16_t sw_thr,
+                        uint16_t phys_int_regs_out_0,uint16_t phys_int_regs_in_0,
+                        uint16_t phys_int_regs_in_1)
+    {
+        #ifdef VANADIS_BUILD_DEBUG
+        if(output->getVerboseLevel() >= verboselevel) {
+            std::string instcode = getInstCode();
+            std::string fpinst = "FP";
+            if(instcode.find(fpinst) != std::string::npos )
+            {
                 output->verbose(
-                    CALL_INFO, verboselevel, 0,
-                    "hw_thr=%d sw_thr = %d Execute: 0x%" PRI_ADDR " %s phys: out=%" PRIu16 " in=%" PRIu16 ", %" PRIu16 ", isa: out=%" PRIu16
-                    " / in=%" PRIu16 ", %" PRIu16 "\n",
-                    getHWThread(),sw_thr, getInstructionAddress(), getInstCode(), phys_int_regs_out_0, phys_int_regs_in_0,
-                    phys_int_regs_in_1, isa_int_regs_out[0], isa_int_regs_in[0], isa_int_regs_in[1]);
+                CALL_INFO, verboselevel, 0,
+                "hw_thr=%d sw_thr = %d Execute: 0x%" PRI_ADDR " %s phys: out=%" PRIu16 " in=%" PRIu16 ", %" PRIu16 ", isa: out=%" PRIu16
+                " / in=%" PRIu16 ", %" PRIu16 "\n",
+                getHWThread(),sw_thr, getInstructionAddress(), getInstCode(), phys_int_regs_out_0, phys_int_regs_in_0,
+                phys_int_regs_in_1, isa_fp_regs_out[0], isa_fp_regs_in[0], isa_fp_regs_in[1]);
             }
-            #endif
+            else
+            output->verbose(
+                CALL_INFO, verboselevel, 0,
+                "hw_thr=%d sw_thr = %d Execute: 0x%" PRI_ADDR " %s phys: out=%" PRIu16 " in=%" PRIu16 ", %" PRIu16 ", isa: out=%" PRIu16
+                " / in=%" PRIu16 ", %" PRIu16 "\n",
+                getHWThread(),sw_thr, getInstructionAddress(), getInstCode(), phys_int_regs_out_0, phys_int_regs_in_0,
+                phys_int_regs_in_1, isa_int_regs_out[0], isa_int_regs_in[0], isa_int_regs_in[1]);
         }
+        #endif
+    }
 
 
-        virtual void print(SST::Output* output) { output->verbose(CALL_INFO, 8, 0, "%s", getInstCode()); }
+    virtual void print(SST::Output* output) { output->verbose(CALL_INFO, 8, 0, "%s", getInstCode()); }
 
-        // Is the instruction predicted (speculation point).
-        // for normal instructions this is false
-        // but branches and jumps will get predicte
-        virtual bool isSpeculated() const { return false; }
+    // Is the instruction predicted (speculation point).
+    // for normal instructions this is false
+    // but branches and jumps will get predicte
+    virtual bool isSpeculated() const { return false; }
 
-        bool completedExecution() const { return has_executed_; }
-        bool completedIssue() const { return has_issued_; }
+    bool completedExecution() const { return has_executed_; }
+    bool completedIssue() const { return has_issued_; }
 
-        virtual void markExecuted() { has_executed_ = true; }
-        void markIssued() { has_issued_ = true; }
+    virtual void markExecuted() { has_executed_ = true; }
+    void markIssued() { has_issued_ = true; }
 
-        bool checkFrontOfROB() const { return is_front_of_rob_; }
-        void markFrontOfROB() { is_front_of_rob_ = true; }
+    bool checkFrontOfROB() const { return is_front_of_rob_; }
+    void markFrontOfROB() { is_front_of_rob_ = true; }
 
-        bool has_rob_slot_Issued() const { return has_rob_slot_; }
-        void markROBSlotIssued() { has_rob_slot_ = true; }
+    bool has_rob_slot_Issued() const { return has_rob_slot_; }
+    void markROBSlotIssued() { has_rob_slot_ = true; }
 
-        const VanadisDecoderOptions* getISAOptions() const { return isa_options; }
+    const VanadisDecoderOptions* getISAOptions() const { return isa_options; }
 
-        void flagError() { trap_error_ = true; }
+    void flagError() { trap_error_ = true; }
 
-        virtual bool performIntRegisterRecovery() const { return true; }
-        virtual bool performFPRegisterRecovery() const { return true; }
+    virtual bool performIntRegisterRecovery() const { return true; }
+    virtual bool performFPRegisterRecovery() const { return true; }
 
-        virtual bool updatesFPFlags() const { return false; }
-        virtual void updateFPFlags() {}
+    virtual bool updatesFPFlags() const { return false; }
+    virtual void updateFPFlags() {}
 
-        virtual void returnOutRegs( VanadisRegisterStack* int_stack, VanadisRegisterStack* fp_stack )
-        {
-            for ( auto i = 0; i < countPhysIntRegOut(); i++ ) {
-                int_stack->push( getPhysIntRegOut(i) );
+    virtual void returnOutRegs( VanadisRegisterStack* int_stack, VanadisRegisterStack* fp_stack )
+    {
+        for ( auto i = 0; i < countPhysIntRegOut(); i++ ) {
+            int_stack->push( getPhysIntRegOut(i) );
+        }
+        for ( auto i = 0; i < countPhysFPRegOut(); i++ ) {
+            fp_stack->push( getPhysFPRegOut(i) );
+        }
+    }
+
+    uint16_t getNumStores()
+    {
+        return 0;
+    }
+
+    void validateMasks() {
+        uint64_t isa_int_regs_in_validate_mask = 0;
+        uint64_t isa_int_regs_out_validate_mask = 0;
+        uint64_t isa_fp_regs_in_validate_mask = 0;
+        uint64_t isa_fp_regs_out_validate_mask = 0;
+        for ( uint16_t i = 0; i < count_isa_int_reg_in; ++i ) {
+            if ( isa_int_regs_in[i] < 64 ) {
+                isa_int_regs_in_validate_mask |= (1ULL << isa_int_regs_in[i]);
             }
-            for ( auto i = 0; i < countPhysFPRegOut(); i++ ) {
-                fp_stack->push( getPhysFPRegOut(i) );
+        }
+        if ( isa_int_regs_in_mask_ != isa_int_regs_in_validate_mask) {
+            printf("Error in instruction type %s, int in mask is INCORRECT\n", getInstCode());
+            assert(0);
+        }
+        for ( uint16_t i = 0; i < count_isa_int_reg_out; ++i ) {
+            if ( isa_int_regs_out[i] < 64 ) {
+                isa_int_regs_out_validate_mask |= (1ULL << isa_int_regs_out[i]);
             }
         }
-
-        uint16_t getNumStores()
-        {
-            return 0;
+        if ( isa_int_regs_out_mask_ != isa_int_regs_out_validate_mask) {
+            printf("Error in instruction type %s, int out mask is INCORRECT\n", getInstCode());
+            assert(0);
         }
+        for ( uint16_t i = 0; i < count_isa_fp_reg_in; ++i ) {
+            if ( isa_fp_regs_in[i] < 64 ) {
+                isa_fp_regs_in_validate_mask |= (1ULL << isa_fp_regs_in[i]);
+            }
+        }
+        if ( isa_fp_regs_in_mask_ != isa_fp_regs_in_validate_mask) {
+            printf("Error in instruction type %s, fp in mask is INCORRECT\n", getInstCode());
+            assert(0);
+        }
+        for ( uint16_t i = 0; i < count_isa_fp_reg_out; ++i ) {
+            if ( isa_fp_regs_out[i] < 64 ) {
+                isa_fp_regs_out_validate_mask |= (1ULL << isa_fp_regs_out[i]);
+            }
+        }
+        if ( isa_fp_regs_out_mask_ != isa_fp_regs_out_validate_mask) {
+            printf("Error in instruction type %s, fp out mask is INCORRECT\n", getInstCode());
+            assert(0);
+        }
+    }
 
 
+protected:
 
-    protected:
+    const uint64_t ins_address_;
+    const uint32_t hw_thread_;
 
-        const uint64_t ins_address;
-        const uint32_t hw_thread;
-
-        uint16_t count_isa_int_reg_in;
-        uint16_t count_isa_int_reg_out;
-        uint16_t count_isa_fp_reg_in;
-        uint16_t count_isa_fp_reg_out;
+    uint16_t count_isa_int_reg_in = 0;
+    uint16_t count_isa_int_reg_out = 0;
+    uint16_t count_isa_fp_reg_in = 0;
+    uint16_t count_isa_fp_reg_out = 0;
 
 
-        uint16_t count_phys_int_reg_in;
-        uint16_t count_phys_int_reg_out;
-        uint16_t count_phys_fp_reg_in;
-        uint16_t count_phys_fp_reg_out;
+    uint16_t count_phys_int_reg_in = 0;
+    uint16_t count_phys_int_reg_out = 0;
+    uint16_t count_phys_fp_reg_in = 0;
+    uint16_t count_phys_fp_reg_out = 0;
 
-        bool trap_error_ = false;
-        bool has_executed_;
-        bool has_issued_;
-        bool end_uop_group_;
-        bool is_front_of_rob_;
-        bool has_rob_slot_;
+    bool trap_error_ = false;
+    bool has_executed_ = false;
+    bool has_issued_ = false;
+    bool end_uop_group_ = false;
+    bool is_front_of_rob_ = false;
+    bool has_rob_slot_ = false;
 
-        const VanadisDecoderOptions* isa_options;
-        uint32_t sw_thread;
-        uint16_t* isa_int_regs_in;
-        uint16_t* isa_int_regs_out;
-        uint16_t* isa_fp_regs_in;
-        uint16_t* isa_fp_regs_out;
+    const VanadisDecoderOptions* isa_options = nullptr;
+    uint32_t sw_thread;
+    uint16_t* isa_int_regs_in = nullptr;
+    uint16_t* isa_int_regs_out = nullptr;
+    uint16_t* isa_fp_regs_in = nullptr;
+    uint16_t* isa_fp_regs_out = nullptr;
 
-        uint16_t* phys_int_regs_in;
-        uint16_t* phys_int_regs_out;
-        uint16_t* phys_fp_regs_in;
-        uint16_t* phys_fp_regs_out;
+    uint16_t* phys_int_regs_in = nullptr;
+    uint16_t* phys_int_regs_out = nullptr;
+    uint16_t* phys_fp_regs_in = nullptr;
+    uint16_t* phys_fp_regs_out = nullptr;
+
+    // Quick lookup IFF regs <= 64
+    uint64_t isa_int_regs_in_mask_  = 0;
+    uint64_t isa_int_regs_out_mask_ = 0;
+    uint64_t isa_fp_regs_in_mask_   = 0;
+    uint64_t isa_fp_regs_out_mask_  = 0;
 
 
 };

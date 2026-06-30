@@ -218,7 +218,7 @@ private:
 
     void resetRegisterUseTemps(const int hw_thr, const uint16_t i_reg, const uint16_t f_reg);
 
-    int assignRegistersToInstruction(
+    void assignRegistersToInstruction(
         const uint16_t int_reg_count, const uint16_t fp_reg_count, VanadisInstruction* ins,
         VanadisRegisterStack* int_regs, VanadisRegisterStack* fp_regs, VanadisISATable* isa_table);
 
@@ -238,10 +238,10 @@ private:
     void performDecode(const uint64_t cycle);
     int  performIssue(const uint64_t cycle, int hwThr, uint32_t& rob_start, int& unallocated_memory_op_seen);
     void performExecute(const uint64_t cycle);
-    int  performRetire(int rob_num, VanadisCircularQueue<VanadisInstruction*>* rob, const uint64_t cycle);
+    int  performRetire(const uint32_t hw_thr, VanadisCircularQueue<VanadisInstruction*>* rob, const uint64_t cycle);
     int  allocateFunctionalUnit(VanadisInstruction* ins);
     bool mapInstructiontoFunctionalUnit(VanadisInstruction* ins, std::vector<VanadisFunctionalUnit*>& functional_units);
-    void printRob(int rob_num, VanadisCircularQueue<VanadisInstruction*>* rob);
+    void printRob(const uint32_t hw_thr, VanadisCircularQueue<VanadisInstruction*>* rob);
 
     bool checkVerboseAddr( uint64_t addr ) {
         for ( auto& it : start_verbose_when_issue_address ) {
@@ -281,8 +281,8 @@ private:
     uint32_t issues_per_cycle = 1;
     uint32_t retires_per_cycle = 1;
 
-    uint32_t m_curRetireHwThread = 0;
-    uint32_t m_curIssueHwThread = 0;
+    uint32_t next_retire_hw_thread_ = 0;
+    uint32_t next_issue_hw_thread_ = 0;
 
     std::vector<VanadisCircularQueue<VanadisInstruction*>*> rob;
     std::vector<VanadisCircularQueue<VanadisInstruction*>*> v_warp_rob;
@@ -291,7 +291,7 @@ private:
 
     std::vector<VanadisFunctionalUnit*> fu_int_arith;
     std::vector<VanadisFunctionalUnit*> fu_int_div;
-    std::vector<VanadisFunctionalUnit*> fu_branch;
+    std::vector<VanadisFunctionalUnit*> func_unit_branch_;
     std::vector<VanadisFunctionalUnit*> fu_fp_arith;
     std::vector<VanadisFunctionalUnit*> fu_fp_div;
 
@@ -302,10 +302,17 @@ private:
     std::vector<VanadisISATable*> issue_isa_tables;
     std::vector<VanadisISATable*> retire_isa_tables;
 
-    std::vector<uint8_t*> tmp_not_issued_int_reg_read;
-    std::vector<uint8_t*> tmp_int_reg_write;
-    std::vector<uint8_t*> tmp_not_issued_fp_reg_read;
-    std::vector<uint8_t*> tmp_fp_reg_write;
+    bool issue_use_bitmasks_ = false;
+    // Bitmasks only work if reg count <= 64
+    std::vector<uint64_t> tmp_not_issued_int_reg_read_mask_;
+    std::vector<uint64_t> tmp_int_reg_write_mask_;
+    std::vector<uint64_t> tmp_not_issued_fp_reg_read_mask_;
+    std::vector<uint64_t> tmp_fp_reg_write_mask_;
+    // Fallback data structures if regs > 64
+    std::vector<uint8_t*> tmp_not_issued_int_reg_read_;
+    std::vector<uint8_t*> tmp_int_reg_write_;
+    std::vector<uint8_t*> tmp_not_issued_fp_reg_read_;
+    std::vector<uint8_t*> tmp_fp_reg_write_;
 
     std::list<VanadisInsCacheLoadRecord*>* icache_load_records = nullptr;
 
@@ -319,23 +326,25 @@ private:
 
     // Save some state cycle-to-cycle to reduce recomputation
     std::vector<int> retire_rc_;
-    std::vector<int> issue_rc_;
-    std::vector<uint32_t> issue_scan_start_;
+    std::vector<bool> issue_blocked_;
+    std::vector<uint32_t> issue_scan_start_;        // For each thread, track which ROB index we should use to start scanning for issue
+    std::vector<uint32_t> issue_oldest_rob_idx_;    // For each thread, track the oldest ROB index that is unissued
     std::vector<int> issue_unallocated_mem_seen_;
+    std::vector<uint32_t> unissued_instructions_;   // How many instructions are waiting to be issued, per thread
 
     bool* halted_masks = nullptr;
-    bool  print_int_reg;
-    bool  print_fp_reg;
-    bool  print_issue_tables;
-    bool  print_retire_tables;
-    bool  print_rob;
-    bool enable_simt; //for future use
+    bool  enable_simt; //for future use
 
     // Tracing, debug, etc.
     #ifdef VANADIS_BUILD_DEBUG
-    char*    inst_print_buffer_ = nullptr;
+    char* inst_print_buffer_ = nullptr;
     #endif
-    FILE*    pipeline_trace_file_ = nullptr;
+    bool  print_int_reg = false;
+    bool  print_fp_reg = false;
+    bool  print_issue_tables = false;
+    bool  print_retire_tables = false;
+    bool  print_rob = false;
+    FILE* pipeline_trace_file_ = nullptr;
 
     uint64_t dCacheLineWidth;
     uint64_t iCacheLineWidth;

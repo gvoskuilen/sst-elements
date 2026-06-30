@@ -36,6 +36,7 @@ public:
     {
         isa_int_regs_in[0] = src_1;
         isa_int_regs_in[1] = src_2;
+        isa_int_regs_in_mask_ |= (1ULL << src_1) | (1ULL << src_2);
     }
 
     VanadisBranchRegCompareInstruction* clone() override { return new VanadisBranchRegCompareInstruction(*this); }
@@ -82,9 +83,9 @@ public:
             ss << " / phys-in: " << phys_int_regs_in_0 << ", " << phys_int_regs_in_1;
             ss << " offset: " <<  offset << " = " << getInstructionAddress() + offset ;
             if(compare_result)
-            ss << "-----> taken-address: 0x"<<std::hex << takenAddress;
+            ss << "-----> taken-address: 0x"<<std::hex << taken_address_;
             else
-            ss << "-----> not-taken-address: 0x"<<std::hex << takenAddress;
+            ss << "-----> not-taken-address: 0x"<<std::hex << taken_address_;
             output->verbose( CALL_INFO, verboselevel, 0, "%s\n", ss.str().c_str());
         }
         #endif
@@ -97,11 +98,11 @@ public:
             regFile, this, output, phys_int_regs_in_0, phys_int_regs_in_1);
 
         if ( *compare_result ) {
-            takenAddress = (uint64_t)(((int64_t)getInstructionAddress()) + offset);
+            taken_address_ = (uint64_t)(((int64_t)getInstructionAddress()) + offset);
 
         }
         else {
-            takenAddress = calculateStandardNotTakenAddress();
+            taken_address_ = calculateStandardNotTakenAddress();
         }
     }
     void scalarExecute(SST::Output* output, VanadisRegisterFile* regFile) override

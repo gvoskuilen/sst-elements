@@ -49,15 +49,18 @@ public:
     {
 
         isa_int_regs_in[0] = memAddrReg;
+        isa_int_regs_in_mask_ = (1ULL << memAddrReg);
 
         switch ( regT ) {
         case LOAD_INT_REGISTER:
         {
             isa_int_regs_out[0] = tgtReg;
+            isa_int_regs_out_mask_ = (1ULL << tgtReg);
         } break;
         case LOAD_FP_REGISTER:
         {
             isa_fp_regs_out[0] = tgtReg;
+            isa_fp_regs_out_mask_ = (1ULL << tgtReg);
         } break;
         }
 

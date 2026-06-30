@@ -30,15 +30,17 @@ class VanadisJumpRegLinkInstruction : public virtual VanadisSpeculatedInstructio
 public:
     VanadisJumpRegLinkInstruction(
         const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint64_t ins_width,
-        const uint16_t returnAddrReg, const uint16_t jumpToAddrReg, const int64_t imm_jump,
+        const uint16_t return_addr_reg, const uint16_t jump_to_addr_reg, const int64_t imm_jump,
         const VanadisDelaySlotRequirement delayT) :
         VanadisInstruction(addr, hw_thr, isa_opts, 1, 1, 1, 1, 0, 0, 0, 0),
         VanadisSpeculatedInstruction(addr, hw_thr, isa_opts, ins_width, 1, 1, 1, 1, 0, 0, 0, 0, delayT)
     {
 
-        isa_int_regs_in[0]  = jumpToAddrReg;
-        isa_int_regs_out[0] = returnAddrReg;
+        isa_int_regs_in[0]  = jump_to_addr_reg;
+        isa_int_regs_out[0] = return_addr_reg;
         imm = imm_jump;
+        isa_int_regs_in_mask_ = (1ULL << jump_to_addr_reg);
+        isa_int_regs_out_mask_ = (1ULL << return_addr_reg);
     }
 
     VanadisJumpRegLinkInstruction* clone() { return new VanadisJumpRegLinkInstruction(*this); }
@@ -65,7 +67,7 @@ public:
                 "hw_thr=%d sw_thr = %d JLR isa-link: %" PRIu16 " isa-addr: %" PRIu16 " + %" PRIu64 " phys-link: %" PRIu16
                 " phys-addr: %" PRIu16 " jump-to: 0x%0" PRI_ADDR " link-value: 0x%0" PRI_ADDR " takenAddr: 0x%0" PRI_ADDR "\n",
                  getHWThread(),sw_thr, isa_int_regs_out[0], isa_int_regs_in[0], imm, phys_int_regs_out_0,
-                phys_int_regs_in_0,jump_to, link_value,takenAddress);
+                phys_int_regs_in_0,jump_to, link_value,taken_address_);
         }
         #endif
     }
@@ -79,7 +81,7 @@ public:
 
             regFile->setIntReg<uint64_t>(phys_int_regs_out_0, *link_value);
             regFile->setIntReg<uint64_t>(phys_int_regs_in_0, *jump_to);
-            takenAddress = regFile->getIntReg<uint64_t>(phys_int_regs_in_0);
+            taken_address_ = regFile->getIntReg<uint64_t>(phys_int_regs_in_0);
 
         }
 

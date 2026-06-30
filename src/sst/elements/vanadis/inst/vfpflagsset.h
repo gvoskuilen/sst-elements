@@ -38,6 +38,7 @@ public:
             addr, hw_thr, isa_opts, fpflags, 1, 0, 1, 0, 0, 0, 0, 0), mode(mode)
     {
 		isa_int_regs_in[0] = src_1;
+        isa_int_regs_in_mask_ = (1ULL << src_1);
     }
 
     VanadisFPFlagsSetInstruction*  clone() override { return new VanadisFPFlagsSetInstruction(*this); }

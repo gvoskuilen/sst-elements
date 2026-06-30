@@ -24,16 +24,16 @@ class VanadisPartialLoadInstruction : public VanadisLoadInstruction
 
 public:
     VanadisPartialLoadInstruction(
-        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t memAddrReg,
-        const int64_t offst, const uint16_t tgtReg, const uint16_t load_bytes, const bool extend_sign,
-        const bool isLowerLoad, VanadisLoadRegisterType regT) :
+        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t mem_addr_reg,
+        const int64_t offst, const uint16_t tgt_reg, const uint16_t load_bytes, const bool extend_sign,
+        const bool is_lower_load, VanadisLoadRegisterType regT) :
         VanadisInstruction( addr, hw_thr, isa_opts,
             1, regT == LOAD_INT_REGISTER ? 1 : 0,
             1, regT == LOAD_INT_REGISTER ? 1 : 0,
             0, regT == LOAD_FP_REGISTER ? 1 : 0,
             0, regT == LOAD_FP_REGISTER ? 1 : 0),
-        VanadisLoadInstruction(addr, hw_thr, isa_opts, memAddrReg, offst, tgtReg, load_bytes, extend_sign, MEM_TRANSACTION_NONE, regT),
-        is_load_lower(isLowerLoad)
+        VanadisLoadInstruction(addr, hw_thr, isa_opts, mem_addr_reg, offst, tgt_reg, load_bytes, extend_sign, MEM_TRANSACTION_NONE, regT),
+        is_load_lower_(is_lower_load)
     {
 
         // We need an extra in register here
@@ -53,11 +53,13 @@ public:
         phys_int_regs_out = new uint16_t[count_phys_int_reg_out];
         isa_int_regs_out = new uint16_t[count_isa_int_reg_out];
 
-        isa_int_regs_out[0] = tgtReg;
-        isa_int_regs_in[0]  = memAddrReg;
-        isa_int_regs_in[1]  = tgtReg;
+        isa_int_regs_out[0] = tgt_reg;
+        isa_int_regs_in[0]  = mem_addr_reg;
+        isa_int_regs_in[1]  = tgt_reg;
+        isa_int_regs_in_mask_ = (1ULL << mem_addr_reg) | (1ULL << tgt_reg);
+        isa_int_regs_out_mask_ = (1ULL << tgt_reg);
 
-        register_offset = 0;
+        register_offset_ = 0;
     }
 
     VanadisPartialLoadInstruction* clone() override { return new VanadisPartialLoadInstruction(*this); }
@@ -104,11 +106,11 @@ public:
         if(output->getVerboseLevel() >= 16) {
             output->verbose(CALL_INFO, 16, 0, "[execute-partload]: full width: %" PRIu16 "\n", load_width);
             output->verbose(
-                CALL_INFO, 16, 0, "[execute-partload]: (lower/upper load ? %s)\n", is_load_lower ? "lower" : "upper");
+                CALL_INFO, 16, 0, "[execute-partload]: (lower/upper load ? %s)\n", is_load_lower_ ? "lower" : "upper");
             output->verbose(
                 CALL_INFO, 16, 0, "[execute-partload]: load-addr: %" PRIu64 " / 0x%0" PRI_ADDR " / load-width: %" PRIu16 "\n",
                 (*out_addr), (*out_addr), (*width));
-            output->verbose(CALL_INFO, 16, 0, "[execute-partload]: register-offset: %" PRIu16 "\n", register_offset);
+            output->verbose(CALL_INFO, 16, 0, "[execute-partload]: register-offset: %" PRIu16 "\n", register_offset_);
         }
         #endif
     }
@@ -117,7 +119,7 @@ public:
 
     VanadisLoadRegisterType getValueRegisterType() const { return LOAD_INT_REGISTER; }
 
-    uint16_t getRegisterOffset() const override { return register_offset; }
+    uint16_t getRegisterOffset() const override { return register_offset_; }
 
 protected:
     void computeLoadAddress(VanadisRegisterFile* reg, uint64_t* out_addr, uint16_t* width) override
@@ -127,7 +129,7 @@ protected:
         int64_t reg_tmp = reg->getIntReg<int64_t>(getMemoryAddressRegister());
 
         const uint64_t base_address =
-            is_load_lower ? (uint64_t)(reg_tmp + offset) : (uint64_t)(reg_tmp + offset) - width_64;
+            is_load_lower_ ? (uint64_t)(reg_tmp + offset) : (uint64_t)(reg_tmp + offset) - width_64;
 
         const uint64_t read_lower_addr = base_address;
         const uint64_t read_lower_len =
@@ -136,25 +138,25 @@ protected:
             (read_lower_len == width_64) ? read_lower_addr : read_lower_addr + read_lower_len;
         const uint64_t read_upper_len = (read_lower_len == width_64) ? width_64 : width_64 - read_lower_len;
 
-        if ( is_load_lower ) {
+        if ( is_load_lower_ ) {
             (*out_addr) = read_lower_addr;
             (*width)    = read_lower_len;
 
-            register_offset = 0;
+            register_offset_ = 0;
         }
         else {
             (*out_addr) = read_upper_addr;
             (*width)    = read_upper_len;
 
-            if ( read_lower_len == width_64 ) { register_offset = 0; }
+            if ( read_lower_len == width_64 ) { register_offset_ = 0; }
             else {
-                register_offset = read_lower_len;
+                register_offset_ = read_lower_len;
             }
         }
     }
 
-    uint16_t   register_offset;
-    const bool is_load_lower;
+    uint16_t   register_offset_;
+    const bool is_load_lower_;
 };
 
 } // namespace Vanadis

@@ -26,8 +26,8 @@ class VanadisPartialStoreInstruction : public VanadisStoreInstruction
 
 public:
     VanadisPartialStoreInstruction(
-        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t memoryAddr,
-        const uint64_t offst, const uint16_t valueReg, const uint16_t store_bytes, const bool isLeftStore,
+        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t memory_addr,
+        const uint64_t offst, const uint16_t value_reg, const uint16_t store_bytes, const bool is_left_store,
         VanadisStoreRegisterType regT) :
         VanadisInstruction(
             addr, hw_thr, isa_opts,
@@ -36,10 +36,10 @@ public:
             regT == STORE_FP_REGISTER ? 1 : 0, 0,
             regT == STORE_FP_REGISTER ? 1 : 0, 0),
         VanadisStoreInstruction(
-            addr, hw_thr, isa_opts, memoryAddr, offst, valueReg, store_bytes, MEM_TRANSACTION_NONE, regT),
-        is_left_store(isLeftStore)
+            addr, hw_thr, isa_opts, memory_addr, offst, value_reg, store_bytes, MEM_TRANSACTION_NONE, regT),
+        is_left_store_(is_left_store)
     {
-        register_offset = 0;
+        register_offset_ = 0;
     }
 
     virtual bool isPartialStore() override { return true; }
@@ -84,24 +84,24 @@ public:
         if(output->getVerboseLevel() >= 16) {
             output->verbose(
                 CALL_INFO, 16, 0, "[partial-store]: base_addr: 0x%0" PRI_ADDR " full-width: %" PRIu64 "\n", base_addr, width_64);
-            output->verbose(CALL_INFO, 16, 0, "[partial-store]: store-type: %s\n", (is_left_store) ? "left" : "right");
+            output->verbose(CALL_INFO, 16, 0, "[partial-store]: store-type: %s\n", (is_left_store_) ? "left" : "right");
             output->verbose(
-                CALL_INFO, 16, 0, "[partial-store]: partial-width: %" PRIu64 "\n", (is_left_store) ? left_len : right_len);
+                CALL_INFO, 16, 0, "[partial-store]: partial-width: %" PRIu64 "\n", (is_left_store_) ? left_len : right_len);
         }
         #endif
-        if ( is_left_store ) {
+        if ( is_left_store_ ) {
             (*store_addr)   = base_addr - left_len;
             (*op_width)     = left_len;
-            register_offset = 0;
+            register_offset_ = 0;
         }
         else {
             if ( left_len == width_64 ) {
                 (*store_addr)   = base_addr;
-                register_offset = 0;
+                register_offset_ = 0;
             }
             else {
                 (*store_addr)   = base_addr + left_len;
-                register_offset = left_len;
+                register_offset_ = left_len;
             }
 
             (*op_width) = right_len;
@@ -111,22 +111,22 @@ public:
             output->verbose(
                 CALL_INFO, 16, 0,
                 "[partial-store]: store-addr: 0x%0" PRIu64 " / store-width: %" PRIu16 " / reg-offset: %" PRIu16 "\n",
-                (*store_addr), (*op_width), register_offset);
+                (*store_addr), (*op_width), register_offset_);
         }
         #endif
     }
 
     uint16_t getStoreWidth() const { return store_width; }
 
-    virtual uint16_t getRegisterOffset() const override { return register_offset; }
+    virtual uint16_t getRegisterOffset() const override { return register_offset_; }
 
     uint16_t                 getMemoryAddressRegister() const { return phys_int_regs_in[0]; }
     uint16_t                 getValueRegister() const { return phys_int_regs_in[1]; }
     VanadisStoreRegisterType getValueRegisterType() const { return STORE_INT_REGISTER; }
 
 protected:
-    uint16_t   register_offset;
-    const bool is_left_store;
+    uint16_t   register_offset_;
+    const bool is_left_store_;
 };
 
 } // namespace Vanadis

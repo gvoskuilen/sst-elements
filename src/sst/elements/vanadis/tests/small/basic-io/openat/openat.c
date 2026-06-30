@@ -26,8 +26,6 @@ int test( int dirfd, const char* path );
 
 int main() {
 
-//    test( -10, "/ascldap/users/mjleven/openat.test" );
-
     // this should fail
     test( -10, "/openat.test" );
 

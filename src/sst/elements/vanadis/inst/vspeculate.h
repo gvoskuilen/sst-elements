@@ -36,51 +36,51 @@ public:
         VanadisInstruction(
             addr, hw_thr, isa_opts, c_phys_int_reg_in, c_phys_int_reg_out, c_isa_int_reg_in, c_isa_int_reg_out,
             c_phys_fp_reg_in, c_phys_fp_reg_out, c_isa_fp_reg_in, c_isa_fp_reg_out),
-        ins_width(ins_w)
+        ins_width_(ins_w)
     {
 
-        delayType = delayT;
+        delay_type_ = delayT;
 
         // default speculated, branch not-taken address
-        speculatedAddress = getInstructionAddress() + ins_width;
+        speculated_address_ = getInstructionAddress() + ins_width_;
 
         // speculatedAddress = (addr + 4);
-        takenAddress = UINT64_MAX;
+        taken_address_ = UINT64_MAX;
     }
 
-    virtual uint64_t getSpeculatedAddress() const { return speculatedAddress; }
-    virtual void     setSpeculatedAddress(const uint64_t spec_ad) { speculatedAddress = spec_ad; }
-    virtual uint64_t getTakenAddress() const { return takenAddress; }
-    void setTakenAddress(uint64_t addr) { takenAddress = addr; }
+    virtual uint64_t getSpeculatedAddress() const { return speculated_address_; }
+    virtual void     setSpeculatedAddress(const uint64_t spec_ad) { speculated_address_ = spec_ad; }
+    virtual uint64_t getTakenAddress() const { return taken_address_; }
+    void setTakenAddress(uint64_t addr) { taken_address_ = addr; }
     virtual bool     isSpeculated() const { return true; }
 
     virtual VanadisFunctionalUnitType getInstFuncType() const { return INST_BRANCH; }
 
-    virtual VanadisDelaySlotRequirement getDelaySlotType() const { return delayType; }
-    uint64_t                            getInstructionWidth() const { return ins_width; }
+    virtual VanadisDelaySlotRequirement getDelaySlotType() const { return delay_type_; }
+    uint64_t                            getInstructionWidth() const { return ins_width_; }
 
 protected:
     uint64_t calculateStandardNotTakenAddress()
     {
         uint64_t new_addr = getInstructionAddress();
 
-        switch ( delayType ) {
+        switch ( delay_type_ ) {
         case VANADIS_CONDITIONAL_SINGLE_DELAY_SLOT:
         case VANADIS_SINGLE_DELAY_SLOT:
-            new_addr += (ins_width * 2);
+            new_addr += (ins_width_ * 2);
             break;
         case VANADIS_NO_DELAY_SLOT:
-            new_addr += ins_width;
+            new_addr += ins_width_;
             break;
         }
 
         return new_addr;
     }
 
-    VanadisDelaySlotRequirement delayType;
-    uint64_t                    speculatedAddress;
-    uint64_t                    takenAddress;
-    uint64_t                    ins_width;
+    VanadisDelaySlotRequirement delay_type_;
+    uint64_t                    speculated_address_;
+    uint64_t                    taken_address_;
+    uint64_t                    ins_width_;
 };
 
 } // namespace Vanadis

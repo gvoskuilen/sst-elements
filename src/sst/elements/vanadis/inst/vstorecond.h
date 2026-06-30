@@ -25,8 +25,8 @@ class VanadisStoreConditionalInstruction : public virtual VanadisStoreInstructio
 {
 public:
     VanadisStoreConditionalInstruction(
-        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t memAddrReg,
-        const int64_t offset, const uint16_t valueReg, const uint16_t condResultReg, const uint16_t store_width,
+        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t mem_addr_reg,
+        const int64_t offset, const uint16_t value_reg, const uint16_t cond_result_reg, const uint16_t store_width,
         VanadisStoreRegisterType reg_type) :
         VanadisInstruction(
             addr, hw_thr, isa_opts,
@@ -35,16 +35,17 @@ public:
             reg_type == STORE_FP_REGISTER ? 1 : 0, 0,
             reg_type == STORE_FP_REGISTER ? 1 : 0, 0),
         VanadisStoreInstruction(
-            addr, hw_thr, isa_opts, memAddrReg, offset, valueReg, store_width, MEM_TRANSACTION_LLSC_STORE, reg_type),
+            addr, hw_thr, isa_opts, mem_addr_reg, offset, value_reg, store_width, MEM_TRANSACTION_LLSC_STORE, reg_type),
             value_success(1), value_failure(0)
     {
-        isa_int_regs_out[0] = condResultReg;
+        isa_int_regs_out[0] = cond_result_reg;
+        isa_int_regs_out_mask_ = (1ULL << cond_result_reg);
     }
 
     VanadisStoreConditionalInstruction(
-        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t memAddrReg,
-        const int64_t offset, const uint16_t valueReg, const uint16_t condResultReg, const uint16_t store_width,
-        VanadisStoreRegisterType reg_type, int64_t successValue, int64_t failureValue) :
+        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t mem_addr_reg,
+        const int64_t offset, const uint16_t value_reg, const uint16_t cond_result_reg, const uint16_t store_width,
+        VanadisStoreRegisterType reg_type, int64_t success_value, int64_t failure_value) :
         VanadisInstruction(
             addr, hw_thr, isa_opts,
             reg_type == STORE_INT_REGISTER ? 2 : 1, 1,
@@ -52,10 +53,11 @@ public:
             reg_type == STORE_FP_REGISTER ? 1 : 0, 0,
             reg_type == STORE_FP_REGISTER ? 1 : 0, 0),
         VanadisStoreInstruction(
-            addr, hw_thr, isa_opts, memAddrReg, offset, valueReg, store_width, MEM_TRANSACTION_LLSC_STORE, reg_type),
-            value_success(successValue), value_failure(failureValue)
+            addr, hw_thr, isa_opts, mem_addr_reg, offset, value_reg, store_width, MEM_TRANSACTION_LLSC_STORE, reg_type),
+            value_success(success_value), value_failure(failure_value)
     {
-        isa_int_regs_out[0] = condResultReg;
+        isa_int_regs_out[0] = cond_result_reg;
+        isa_int_regs_out_mask_ = (1ULL << cond_result_reg);
     }
 
     VanadisStoreConditionalInstruction(const VanadisStoreConditionalInstruction& copy_me) :

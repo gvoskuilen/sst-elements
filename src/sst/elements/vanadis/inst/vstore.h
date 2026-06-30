@@ -29,8 +29,8 @@ class VanadisStoreInstruction : public virtual VanadisInstruction
 
 public:
     VanadisStoreInstruction(
-        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t memoryAddr,
-        const int64_t offst, const uint16_t valueReg, const uint16_t store_bytes, VanadisMemoryTransaction accessT,
+        const uint64_t addr, const uint32_t hw_thr, const VanadisDecoderOptions* isa_opts, const uint16_t memory_addr,
+        const int64_t offst, const uint16_t value_reg, const uint16_t store_bytes, VanadisMemoryTransaction accessT,
         VanadisStoreRegisterType regT) :
         VanadisInstruction(
             addr, hw_thr, isa_opts,
@@ -53,18 +53,27 @@ public:
         switch ( regT ) {
         case STORE_INT_REGISTER:
         {
-            isa_int_regs_in[0] = memoryAddr;
-            isa_int_regs_in[1] = valueReg;
+            isa_int_regs_in[0] = memory_addr;
+            isa_int_regs_in[1] = value_reg;
+            isa_int_regs_in_mask_ = (1ULL << memory_addr) | (1ULL << value_reg);
 
-            if ( MEM_TRANSACTION_LLSC_STORE == accessT ) { isa_int_regs_out[0] = valueReg; }
-
+            if ( MEM_TRANSACTION_LLSC_STORE == accessT ) { 
+                isa_int_regs_out[0] = value_reg; 
+                isa_int_regs_out_mask_ = (1ULL << value_reg);
+            }
         } break;
         case STORE_FP_REGISTER:
         {
-            isa_int_regs_in[0] = memoryAddr;
-            isa_fp_regs_in[0]  = valueReg;
+            isa_int_regs_in[0] = memory_addr;
+            isa_fp_regs_in[0]  = value_reg;
+            isa_int_regs_in_mask_ = (1ULL << memory_addr);
+            isa_fp_regs_in_mask_ = (1ULL << value_reg);
 
-            if ( MEM_TRANSACTION_LLSC_STORE == accessT ) { isa_fp_regs_out[0] = valueReg; }
+            if ( MEM_TRANSACTION_LLSC_STORE == accessT ) { 
+                isa_fp_regs_out[0] = value_reg; 
+                isa_fp_regs_out_mask_ = (1ULL << value_reg);
+            }
+
         } break;
         }
 

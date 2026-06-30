@@ -41,7 +41,7 @@ public:
         fault_msg = "";
     }
 
-    VanadisInstruction* clone() override { return new VanadisInstructionFault(ins_address, hw_thread, isa_options); }
+    VanadisInstruction* clone() override { return new VanadisInstructionFault(ins_address_, hw_thread_, isa_options); }
 
     const char* getInstCode() const override { return "FAULT"; }
 

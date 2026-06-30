@@ -23,7 +23,7 @@
 namespace SST {
 namespace Vanadis {
 // not found in RV decoder
-template <typename fp_format>
+template <typename fp_format, VanadisFPRegisterMode fp_reg_mode>
 class VanadisFP2FPInstruction : public VanadisFloatingPointInstruction
 {
 public:
@@ -32,27 +32,29 @@ public:
         VanadisFloatingPointFlags* fpflags, const uint16_t fp_dest, const uint16_t fp_src) :
         VanadisInstruction(
             addr, hw_thr, isa_opts, 0, 0, 0, 0,
-            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1,
-            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1,
-            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1,
-            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1),
+            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode)) ? 2 : 1,
+            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode)) ? 2 : 1,
+            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode)) ? 2 : 1,
+            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode)) ? 2 : 1),
         VanadisFloatingPointInstruction(
             addr, hw_thr, isa_opts, fpflags, 0, 0, 0, 0,
-            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1,
-            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1,
-            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1,
-            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1)
+            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode)) ? 2 : 1,
+            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode)) ? 2 : 1,
+            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode)) ? 2 : 1,
+            ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode)) ? 2 : 1)
     {
-
-        if ( (sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode()) ) {
-            isa_fp_regs_out[0] = fp_dest;
-            isa_fp_regs_out[1] = fp_dest + 1;
+        if constexpr ( (sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode) ) {
             isa_fp_regs_in[0]  = fp_src;
             isa_fp_regs_in[1]  = fp_src + 1;
-        }
-        else {
             isa_fp_regs_out[0] = fp_dest;
+            isa_fp_regs_out[1] = fp_dest + 1;
+            isa_fp_regs_in_mask_ = (3ULL << fp_src);
+            isa_fp_regs_out_mask_ = (3ULL << fp_dest);
+        } else {
             isa_fp_regs_in[0]  = fp_src;
+            isa_fp_regs_out[0] = fp_dest;
+            isa_fp_regs_in_mask_ = (1ULL << fp_src);
+            isa_fp_regs_out_mask_ = (1ULL << fp_dest);
         }
     }
 
@@ -115,23 +117,23 @@ public:
         #endif
     }
 
-    void instOp(VanadisRegisterFile* regFile,
+    void instOp(VanadisRegisterFile* reg_file,
                                 uint16_t phys_fp_regs_out_0, uint16_t phys_fp_regs_out_1,
                                 uint16_t phys_fp_regs_in_0,uint16_t phys_fp_regs_in_1)
     {
-        if ( (sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_options->getFPRegisterMode()) ) {
-            const int32_t v_0 = regFile->getFPReg<int32_t>(phys_fp_regs_in_0);
-            regFile->setFPReg<int32_t>(phys_fp_regs_out_0, v_0);
+        if constexpr ( (sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == fp_reg_mode) ) {
+            const int32_t v_0 = reg_file->getFPReg<int32_t>(phys_fp_regs_in_0);
+            reg_file->setFPReg<int32_t>(phys_fp_regs_out_0, v_0);
 
-            const int32_t v_1 = regFile->getFPReg<int32_t>(phys_fp_regs_in_1);
-            regFile->setFPReg<int32_t>(phys_fp_regs_out_1, v_1);
+            const int32_t v_1 = reg_file->getFPReg<int32_t>(phys_fp_regs_in_1);
+            reg_file->setFPReg<int32_t>(phys_fp_regs_out_1, v_1);
 
-            const double v_dbl = combineFromRegisters<fp_format>(regFile, phys_fp_regs_in_0, phys_fp_regs_in_1);
+            const double v_dbl = combineFromRegisters<fp_format>(reg_file, phys_fp_regs_in_0, phys_fp_regs_in_1);
             performFlagChecks<double>(v_dbl);
         }
         else {
-            const fp_format fp_v = regFile->getFPReg<fp_format>(phys_fp_regs_in_0);
-            regFile->setFPReg<fp_format>(phys_fp_regs_out_0, fp_v);
+            const fp_format fp_v = reg_file->getFPReg<fp_format>(phys_fp_regs_in_0);
+            reg_file->setFPReg<fp_format>(phys_fp_regs_out_0, fp_v);
 
             performFlagChecks<fp_format>(fp_v);
         }

@@ -36,7 +36,8 @@ public:
     {
 
         isa_int_regs_out[0] = link_reg;
-        takenAddress        = pc;
+        taken_address_      = pc;
+        isa_int_regs_out_mask_ = (1ULL << link_reg);
     }
 
     VanadisJumpLinkInstruction* clone() override { return new VanadisJumpLinkInstruction(*this); }
@@ -45,37 +46,37 @@ public:
 
     void printToBuffer(char* buffer, size_t buffer_size) override
     {
-        snprintf(buffer, buffer_size, "JL      %" PRIu64 " (0x%" PRI_ADDR ")", takenAddress, takenAddress);
+        snprintf(buffer, buffer_size, "JL      %" PRIu64 " (0x%" PRI_ADDR ")", taken_address_, taken_address_);
     }
 
-    void log(SST::Output* output, int verboselevel, uint16_t sw_thr,
-                uint64_t link_val, uint16_t phys_int_regs_out0, uint64_t takenAddr)
+    void log(SST::Output* output, int verbose_level, uint16_t sw_thr,
+                uint64_t link_val, uint16_t phys_int_regs_out0, uint64_t taken_addr)
     {
         #ifdef VANADIS_BUILD_DEBUG
-        if(output->getVerboseLevel() >= verboselevel)
+        if(output->getVerboseLevel() >= verbose_level)
         {
             output->verbose(
-                CALL_INFO, verboselevel, 0,
+                CALL_INFO, verbose_level, 0,
                 "hw_thr=%d sw_thr = %d JumpExecute: 0x%" PRI_ADDR " JL jump-to: %" PRIu64 " / 0x%" PRI_ADDR " / link: %" PRIu16 " phys: %" PRIu16 " v: %" PRIu64 "/ 0x%" PRI_ADDR "\n",
-                getHWThread(),sw_thr, getInstructionAddress(),takenAddr, takenAddr,
+                getHWThread(),sw_thr, getInstructionAddress(), taken_addr, taken_addr,
                  isa_int_regs_out[0], phys_int_regs_out0, link_val, link_val);
         }
         #endif
     }
 
-    void instOp(VanadisRegisterFile* regFile,uint16_t phys_int_regs_out0, uint64_t link_val)
+    void instOp(VanadisRegisterFile* reg_file, uint16_t phys_int_regs_out0, uint64_t link_val)
     {
-        regFile->setIntReg<uint64_t>(phys_int_regs_out0, link_val);
+        reg_file->setIntReg<uint64_t>(phys_int_regs_out0, link_val);
     }
 
-    void scalarExecute(SST::Output* output, VanadisRegisterFile* regFile) override
+    void scalarExecute(SST::Output* output, VanadisRegisterFile* reg_file) override
     {
         const uint64_t link_value = calculateStandardNotTakenAddress();
         uint16_t phys_int_regs_out_0 = getPhysIntRegOut(0);
         #ifdef VANADIS_BUILD_DEBUG
-        log(output, 16, 65355, link_value, phys_int_regs_out_0, takenAddress);
+        log(output, 16, 65355, link_value, phys_int_regs_out_0, taken_address_);
         #endif
-        instOp(regFile, phys_int_regs_out_0, link_value );
+        instOp(reg_file, phys_int_regs_out_0, link_value );
         markExecuted();
     }
 };

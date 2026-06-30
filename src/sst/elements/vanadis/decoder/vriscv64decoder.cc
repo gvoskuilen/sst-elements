@@ -27,7 +27,7 @@ VanadisRISCV64Decoder::VanadisRISCV64Decoder(ComponentId_t id, Params& params, S
     options_ = new VanadisDecoderOptions(static_cast<uint16_t>(0), 35, 32, 2, VANADIS_REGISTER_MODE_FP64);
 
     // See if we get an entry point the sub-component says we have to use
-    // if not, we will fall back to ELF reading at the core level to work this
+    // if not, we will fall back to ELFVanadisFP2FPInstruction reading at the core level to work this
     // out
     setInstructionPointer(params.find<uint64_t>("entry_point", 0));
 
@@ -103,19 +103,7 @@ void VanadisRISCV64Decoder::setThreadPointer( VanadisISATable* isa_tbl, VanadisR
 
 bool VanadisRISCV64Decoder::tick(uint64_t cycle)
 {
-    #ifdef VANADIS_BUILD_DEBUG
-    output_->verbose(CALL_INFO, 16, 0, "-> Decode step for thr: %" PRIu32 "\n", hw_thr);
-    #endif
-
     cycle_count_ = cycle;
-
-    if ( thread_rob->full() ) {
-        #ifdef VANADIS_BUILD_DEBUG
-        output_->verbose(CALL_INFO, 16, 0, "---> Decode pending queue (ROB) is full, no decodes permitted this cycle.\n");
-        output_->verbose(CALL_INFO, 16, 0, "---> cycle is completed, ip=0x%" PRI_ADDR "\n", ip);
-        #endif
-        return false;
-    }
 
     bool success = false;
 
@@ -124,16 +112,15 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
         // We have the instruction in our micro-op cache
         stat_uop_hit_->addData(1);
 
-        #ifdef VANADIS_BUILD_DEBUG
-        if (output_->getVerboseLevel() >= 16) {
-            output_->verbose(CALL_INFO, 16, 0,
-                "----> Found uop bundle for ip=0x%" PRI_ADDR " with %" PRIu32 " entries. Loading from cache...\n",
-                ip, bundle->getInstructionCount());
-        }
-        #endif
-
         // Do we have enough space in the ROB to push the micro-op bundle into the queue?
         if ( bundle->getInstructionCount() < (thread_rob->capacity() - thread_rob->size()) ) {
+            #ifdef VANADIS_BUILD_DEBUG
+            if (output_->getVerboseLevel() >= 16) {
+                output_->verbose(CALL_INFO, 16, 0,
+                    "%" PRIu32 ": ----> Attempt decode ip=0x%" PRI_ADDR ": uop cache hit, loading %" PRIu32 " entries.\n",
+                    hw_thr, ip, bundle->getInstructionCount());
+            }
+            #endif
             bool bundle_has_branch = false;
 
             for ( uint32_t i = 0; i < bundle->getInstructionCount(); ++i ) {
@@ -148,8 +135,8 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
                         // We have an address predicton from the branching unit
                         #ifdef VANADIS_BUILD_DEBUG
                         output_->verbose(CALL_INFO, 16, 0,
-                            "----> contains a branch: 0x%" PRI_ADDR " / predicted (found in predictor): 0x%" PRI_ADDR "\n",
-                            ip, predicted_address);
+                            "%" PRIu32 ": ----> contains a branch: 0x%" PRI_ADDR " / predicted (found in predictor): 0x%" PRI_ADDR "\n",
+                            hw_thr, ip, predicted_address);
                         #endif
                         ip = predicted_address;
                     } else {
@@ -157,8 +144,8 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
                         // next instruction as we aren't sure where this will go yet
                         #ifdef VANADIS_BUILD_DEBUG
                         output_->verbose(CALL_INFO, 16, 0,
-                            "----> contains a branch: 0x%" PRI_ADDR " / predicted "
-                            "(not-found in predictor): 0x%" PRI_ADDR ", pc-increment: %" PRIu64 "\n", ip, ip + 4, bundle->pcIncrement());
+                            "%" PRIu32 ": ----> contains a branch: 0x%" PRI_ADDR " / predicted "
+                            "(not-found in predictor): 0x%" PRI_ADDR ", pc-increment: %" PRIu64 "\n", hw_thr, ip, ip + 4, bundle->pcIncrement());
                         #endif
                         ip += bundle->pcIncrement();
                     }
@@ -166,14 +153,15 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
                     next_spec_ins->setSpeculatedAddress(ip);
                 }
 
-                thread_rob->push(next_ins->clone());
+                auto new_ins = next_ins->clone();
+                thread_rob->push(new_ins);
             }
 
             // Move to the next address, if we had a branch we should have already found a predicted target addeess to decode
             #ifdef VANADIS_BUILD_DEBUG
             if(output_->getVerboseLevel() >= 16) {
-                output_->verbose(CALL_INFO, 16,0, "----> branch? %s, ip=0x%" PRI_ADDR " + inc=%" PRIu64 " = new-ip=0x%" PRI_ADDR "\n",
-                    bundle_has_branch ? "yes" : "no", ip, bundle_has_branch ? 0 : bundle->pcIncrement(),
+                output_->verbose(CALL_INFO, 16,0, "%" PRIu32 ": ----> branch? %s, ip=0x%" PRI_ADDR " + inc=%" PRIu64 " = new-ip=0x%" PRI_ADDR "\n",
+                    hw_thr, bundle_has_branch ? "yes" : "no", ip, bundle_has_branch ? 0 : bundle->pcIncrement(),
                     bundle_has_branch ? ip : ip + bundle->pcIncrement());
             }
             #endif
@@ -183,7 +171,11 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
         }
         else {
             #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, 0, "----> Not enough space in the ROB, will stall this cycle.\n");
+            if (output_->getVerboseLevel() >= 16) {
+                output_->verbose(CALL_INFO, 16, 0,
+                    "%" PRIu32 ": ----> Attempt decode ip=0x%" PRI_ADDR ": uop cache hit but not enough space in the ROB for %" PRIu32 " entries. Stalling this cycle.\n",
+                    hw_thr, ip, bundle->getInstructionCount());
+                }
             #endif
             stat_uop_delayed_rob_full_->addData(1);
         }
@@ -193,7 +185,7 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
         #ifdef VANADIS_BUILD_DEBUG
         if(output_->getVerboseLevel() >= 16) {
             output_->verbose(CALL_INFO, 16, 0,
-                "---> uop not found, but is located in the predecode i0-icache (ip=0x%" PRI_ADDR ")\n", ip);
+                "%" PRIu32 ": ---> uop not found, but is located in the predecode i0-icache (ip=0x%" PRI_ADDR ")\n", hw_thr, ip);
         }
         #endif
 
@@ -206,10 +198,6 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
             ins_loader->getPredecodeBytes(ip, (uint8_t*)&temp_ins, sizeof(temp_ins));
 
         if ( LIKELY(predecode_bytes) ) {
-            #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, 0, "---> performing a decode for ip=0x%" PRI_ADDR "\n", ip);
-            #endif
-
             decode(ip, temp_ins, decoded_bundle);
 
             #ifdef VANADIS_BUILD_DEBUG
@@ -236,8 +224,8 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
         #ifdef VANADIS_BUILD_DEBUG
         if(output_->getVerboseLevel() >= 16) {
             output_->verbose(CALL_INFO, 16, 0,
-                "---> microop bundle and pre-decoded bytes are not found for 0x%" PRI_ADDR ", requested read for cache line (line=%" PRIu64 ")\n",
-                ip, ins_loader->getCacheLineWidth());
+                "%" PRIu32 " ---> microop bundle and pre-decoded bytes are not found for 0x%" PRI_ADDR ", requested read for cache line (line=%" PRIu64 ")\n",
+                hw_thr, ip, ins_loader->getCacheLineWidth());
         }
         #endif
         ins_loader->requestLoadAt(ip, 4);
@@ -247,7 +235,7 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
     }
 
     #ifdef VANADIS_BUILD_DEBUG
-    output_->verbose(CALL_INFO, 16, 0, "---> decode execute completed, ip=0x%" PRI_ADDR "\n", ip);
+    output_->verbose(CALL_INFO, 16, 0, "%" PRIu32 " ---> decode execute completed, ip=0x%" PRI_ADDR "\n", hw_thr, ip);
     #endif
     return success;
 }
@@ -255,8 +243,7 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
 void VanadisRISCV64Decoder::decode(const uint64_t ins_address, const uint32_t ins, VanadisInstructionBundle* bundle)
 {
     #ifdef VANADIS_BUILD_DEBUG
-    output_->verbose(CALL_INFO, 16, 0, "[decode] -> addr: 0x%" PRI_ADDR " / ins: 0x%08x\n", ins_address, ins);
-    output_->verbose(CALL_INFO, 16, 0, "[decode] -> ins-bytes: 0x%08x\n", ins);
+    output_->verbose(CALL_INFO, 16, 0, "%" PRIu32 ": ---> DECODE addr: 0x%" PRI_ADDR " / ins: 0x%08x\n", hw_thr, ins_address, ins);
     #endif
 
     // We are supposed to have 16b packets for RISCV instructions, if we don't then mark fault
@@ -272,11 +259,6 @@ void VanadisRISCV64Decoder::decode(const uint64_t ins_address, const uint32_t in
     // if the last two bits that are set are 11, then we are performing at least 32bit instruction formats,
     // otherwise we are performing decodes on the C-extension (16b) formats
     if ( (ins & 0x3) == 0x3 ) {
-        #ifdef VANADIS_BUILD_DEBUG
-        output_->verbose(
-            CALL_INFO, 16, 0, "[decode] -> 32bit format / ins-op-code-family: %" PRIu32 " / 0x%x\n", op_code,
-            op_code);
-        #endif
         decode_fault = decodeBaseISA(op_code, ins_address, ins, bundle);
     } else {
         decode_fault = decodeCompressedExtension(op_code, ins_address, ins, bundle);
@@ -316,7 +298,7 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
         case 0: // LB
         {
             #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, 0, "----> LB %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
+            output_->verbose(CALL_INFO, 16, 0, "          LB %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
             #endif
 
             bundle->addInstruction(new VanadisLoadInstruction(
@@ -326,7 +308,7 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
         case 1: // LH
         {
             #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, 0, "----> LH %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
+            output_->verbose(CALL_INFO, 16, 0, "          LH %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
             #endif
             bundle->addInstruction(new VanadisLoadInstruction(
                 ins_address, hw_thr, options_, rs1, simm64, rd, 2, true, MEM_TRANSACTION_NONE, LOAD_INT_REGISTER));
@@ -335,7 +317,7 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
         case 2: // LW
         {
             #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, 0, "----> LW %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
+            output_->verbose(CALL_INFO, 16, 0, "          LW %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
             #endif
             bundle->addInstruction(new VanadisLoadInstruction(
                 ins_address, hw_thr, options_, rs1, simm64, rd, 4, true, MEM_TRANSACTION_NONE, LOAD_INT_REGISTER));
@@ -344,7 +326,7 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
         case 3: // LD
         {
             #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, 0, "----> LD %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
+            output_->verbose(CALL_INFO, 16, 0, "          LD %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
             #endif
             bundle->addInstruction(new VanadisLoadInstruction(
                 ins_address, hw_thr, options_, rs1, simm64, rd, 8, true, MEM_TRANSACTION_NONE, LOAD_INT_REGISTER));
@@ -354,7 +336,7 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
         {
             #ifdef VANADIS_BUILD_DEBUG
             output_->verbose(
-                CALL_INFO, 16, 0, "----> LBU %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
+                CALL_INFO, 16, 0, "          LBU %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
             #endif
             bundle->addInstruction(new VanadisLoadInstruction(
                 ins_address, hw_thr, options_, rs1, simm64, rd, 1, false, MEM_TRANSACTION_NONE,
@@ -364,7 +346,7 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
         case 5: // LHU
         {
             #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, 0, "----> LHU %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
+            output_->verbose(CALL_INFO, 16, 0, "          LHU %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
             #endif
             bundle->addInstruction(new VanadisLoadInstruction(
                 ins_address, hw_thr, options_, rs1, simm64, rd, 2, false, MEM_TRANSACTION_NONE, LOAD_INT_REGISTER));
@@ -373,7 +355,7 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
         case 6: // LWU
         {
             #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, 0, "----> LWU %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
+            output_->verbose(CALL_INFO, 16, 0, "          LWU %" PRIu16 " <- %" PRIu16 " %" PRId64 "\n", rd, rs1, simm64);
             #endif
             bundle->addInstruction(new VanadisLoadInstruction(
                 ins_address, hw_thr, options_, rs1, simm64, rd, 4, false, MEM_TRANSACTION_NONE,
@@ -394,7 +376,7 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
         case 0x2: // FLW
         {
             #ifdef VANADIS_BUILD_DEBUG
-            output_->verbose(CALL_INFO, 16, 0, "----> FLW %" PRIu16 " <- memory[ %" PRIu16 " + %" PRId64 " ]\n", rd, rs1, simm64);
+            output_->verbose(CALL_INFO, 16, 0, "%" PRIu32 ": ----> FLW %" PRIu16 " <- memory[ %" PRIu16 " + %" PRId64 " ]\n", hw_thr, rd, rs1, simm64);
             #endif
             bundle->addInstruction(new VanadisLoadInstruction(
                 ins_address, hw_thr, options_, rs1, simm64, rd, 4, true, MEM_TRANSACTION_NONE, LOAD_FP_REGISTER));
@@ -405,7 +387,7 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
             // FLD
             #ifdef VANADIS_BUILD_DEBUG
             output_->verbose(
-                CALL_INFO, 16, 0, "----> FLD %" PRIu16 " <- memory[ %" PRIu16 " + %" PRId64 " ]\n", rd, rs1, simm64);
+                CALL_INFO, 16, 0, "%" PRIu32 ": ----> FLD %" PRIu16 " <- memory[ %" PRIu16 " + %" PRId64 " ]\n", hw_thr, rd, rs1, simm64);
             #endif
             bundle->addInstruction(new VanadisLoadInstruction(
                 ins_address, hw_thr, options_, rs1, simm64, rd, 8, true, MEM_TRANSACTION_NONE, LOAD_FP_REGISTER));
@@ -473,10 +455,6 @@ VanadisRISCV64Decoder::decodeBaseISA(const uint32_t op_code, const uint64_t ins_
     {
         // Immediate arithmetic
         processIbase(ins, rd, rs1, func_code3);
-
-        #ifdef VANADIS_BUILD_DEBUG
-        output_->verbose(CALL_INFO, 16, 0, "----> immediate-arith func: %" PRIu32 "\n", func_code3);
-        #endif
 
         switch ( func_code3 ) {
         case 0x0: // ADDI

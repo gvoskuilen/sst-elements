@@ -32,6 +32,7 @@ public:
     {
 
         isa_int_regs_in[0] = jump_to_reg;
+        isa_int_regs_in_mask_ = (1ULL << jump_to_reg);
     }
 
     VanadisJumpRegInstruction* clone() { return new VanadisJumpRegInstruction(*this); }
@@ -53,14 +54,14 @@ public:
             {
                 output->verbose(
                     CALL_INFO, verboselevel, 0, "hw_thr=%d sw_thr = %d JR Execute: (addr=0x%0" PRI_ADDR ")    isa-in: %" PRIu16 " / phys-in: %" PRIu16 " taken address=0x%0" PRI_ADDR "\n",
-                    getHWThread(),sw_thr, getInstructionAddress(), isa_int_regs_in[0], phys_int_regs_in_0, takenAddress);
+                    getHWThread(),sw_thr, getInstructionAddress(), isa_int_regs_in[0], phys_int_regs_in_0, taken_address_);
             }
             #endif
         }
 
     void instOp(VanadisRegisterFile* regFile, uint16_t phys_int_regs_in_0)
     {
-        takenAddress = regFile->getIntReg<uint64_t>(phys_int_regs_in_0);
+        taken_address_ = regFile->getIntReg<uint64_t>(phys_int_regs_in_0);
     }
 
     virtual void scalarExecute(SST::Output* output, VanadisRegisterFile* regFile)
@@ -71,7 +72,7 @@ public:
         #ifdef VANADIS_BUILD_DEBUG
         log(output, 16, 65535, phys_int_regs_in[0]);
         #endif
-        //        if ((takenAddress & 0x3) != 0) {
+        //        if ((taken_address_ & 0x3) != 0) {
         //            flagError();
         //        }
 

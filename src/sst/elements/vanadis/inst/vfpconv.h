@@ -45,17 +45,21 @@ public:
         if ( (sizeof(src_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode()) ) {
             isa_fp_regs_in[0] = fp_src;
             isa_fp_regs_in[1] = fp_src + 1;
+            isa_fp_regs_in_mask_ = (3ULL << fp_src);
         }
         else {
             isa_fp_regs_in[0] = fp_src;
+            isa_fp_regs_in_mask_ = (1ULL << fp_src);
         }
 
         if ( (sizeof(dest_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode()) ) {
             isa_fp_regs_out[0] = fp_dest;
             isa_fp_regs_out[1] = fp_dest + 1;
+            isa_fp_regs_out_mask_ = (3ULL << fp_dest);
         }
         else {
             isa_fp_regs_out[0] = fp_dest;
+            isa_fp_regs_out_mask_ = (1ULL << fp_dest);
         }
     }
 

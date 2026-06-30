@@ -43,13 +43,16 @@ public:
             ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1)
     {
         isa_int_regs_in[0] = int_src;
+        isa_int_regs_in_mask_ = (1ULL << int_src);
 
         if ( (sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode()) ) {
             isa_fp_regs_out[0] = fp_dest;
             isa_fp_regs_out[1] = fp_dest + 1;
+            isa_fp_regs_out_mask_ = (3ULL << fp_dest);
         }
         else {
             isa_fp_regs_out[0] = fp_dest;
+            isa_fp_regs_out_mask_ = (1ULL << fp_dest);
         }
     }
 

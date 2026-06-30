@@ -32,6 +32,7 @@ public:
     {
 
         isa_int_regs_out[0] = dest;
+        isa_int_regs_out_mask_ = (1ULL << dest);
         imm_value           = immediate;
     }
 

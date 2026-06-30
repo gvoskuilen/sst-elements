@@ -40,6 +40,8 @@ public:
         isa_int_regs_in[0] = rs1;
         isa_int_regs_in[1] = rs2;
         isa_int_regs_out[0] = rd;
+        isa_int_regs_in_mask_ = (1ULL << rs1) | (1ULL << rs2);
+        isa_int_regs_out_mask_ = (1ULL << rd);
 
         this->func7 = func_code7;
         this->rd = rd;

@@ -23,8 +23,6 @@
 namespace SST {
 namespace Vanadis {
 
-//new VanadisFPClassInstruction<uint64_t,double>(ins_address, hw_thr, options, fpflags, rd, rs1));
-
 template <typename gpr_format, typename fp_format>
 class VanadisFPClassInstruction : public VanadisFloatingPointInstruction
 {
@@ -41,15 +39,14 @@ public:
             ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1, 0,
             ((sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode())) ? 2 : 1, 0)
     {
-
         isa_int_regs_out[0] = int_dest;
+        isa_fp_regs_in[0] = fp_src;
+        isa_int_regs_out_mask_ |= (1ULL << int_dest);
+        isa_fp_regs_in_mask_ |= (1ULL << fp_src);
 
         if ( (sizeof(fp_format) == 8) && (VANADIS_REGISTER_MODE_FP32 == isa_opts->getFPRegisterMode()) ) {
-            isa_fp_regs_in[0] = fp_src;
             isa_fp_regs_in[1] = fp_src + 1;
-        }
-        else {
-            isa_fp_regs_in[0] = fp_src;
+            isa_fp_regs_in_mask_ |= (1ULL << (fp_src + 1));
         }
     }
 

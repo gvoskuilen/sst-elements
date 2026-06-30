@@ -34,6 +34,7 @@ public:
         offset(offst)
     {
         isa_fp_regs_in[0] = cond_reg;
+        isa_fp_regs_in_mask_ |= (1ULL << cond_reg);
     }
 
     VanadisBranchFPInstruction* clone() override { return new VanadisBranchFPInstruction(*this); }
@@ -53,7 +54,7 @@ public:
             output->verbose(
                 CALL_INFO, verboselevel, 0,
                 "hw_thr=%d sw_thr = %d Execute: (addr=0x%" PRI_ADDR ") BFP%c isa-in: %" PRIu16 ", / phys-in: %" PRIu16 " / offset: %" PRId64 " -----> Taken? %c branch addr= 0x%" PRI_ADDR " \n",
-                getHWThread(),sw_thr, getInstructionAddress(), branch_on_true ? 'T' : 'F', isa_fp_regs_in[0], phys_fp_regs_in_0, offset, (compare_result==true) ? 'Y' : 'N', takenAddress);
+                getHWThread(),sw_thr, getInstructionAddress(), branch_on_true ? 'T' : 'F', isa_fp_regs_in[0], phys_fp_regs_in_0, offset, (compare_result==true) ? 'Y' : 'N', taken_address_);
         }
         #endif
     }
@@ -73,10 +74,10 @@ public:
         *compare_result = ((fp_cond_val & 0x800000) == (branch_on_true ? 0x800000 : 0));
 
         if ( *compare_result ) {
-            takenAddress = (uint64_t)(((int64_t)getInstructionAddress()) + offset);
+            taken_address_ = (uint64_t)(((int64_t)getInstructionAddress()) + offset);
         }
         else {
-            takenAddress = calculateStandardNotTakenAddress();
+            taken_address_ = calculateStandardNotTakenAddress();
         }
     }
 

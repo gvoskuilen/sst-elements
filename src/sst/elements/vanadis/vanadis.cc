@@ -615,11 +615,10 @@ VanadisCore::performIssue(const uint64_t cycle, int hw_thr, uint32_t& rob_unissu
         //rob_unissued_start = 0;
     }
 
-    // Search for next first unissued instruction
+    // Search for next unissued instruction
     while ( rob_unissued_start < rob_size ) {
         VanadisInstruction* ins = thr_rob->peekAt(rob_unissued_start);
         if ( !ins->completedIssue() ) break; // Found one!
-        printRob( hw_thr, thr_rob );
         ++rob_unissued_start;
     }
 

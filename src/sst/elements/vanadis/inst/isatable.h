@@ -61,7 +61,7 @@ public:
             fp_reg_pending_read[i]  = 0;
             fp_reg_pending_write[i] = 0;
         }
-        
+
         int_reg_pending_write_mask_ = 0;
         fp_reg_pending_write_mask_ = 0;
     }
@@ -72,7 +72,7 @@ public:
         delete[] int_reg_pending_read;
         delete[] fp_reg_ptr;
         delete[] fp_reg_pending_read;
-        delete[] int_reg_pending_write;            
+        delete[] int_reg_pending_write;
         delete[] fp_reg_pending_write;
     }
 
@@ -168,7 +168,7 @@ public:
             fp_reg_pending_read[i]  = tbl->fp_reg_pending_read[i];
             fp_reg_pending_write[i] = tbl->fp_reg_pending_write[i];
         }
-        
+
         int_reg_pending_write_mask_ = tbl->int_reg_pending_write_mask_;
         fp_reg_pending_write_mask_  = tbl->fp_reg_pending_write_mask_;
     }
@@ -263,7 +263,7 @@ protected:
 
         return found;
     }
-    
+
     const uint16_t count_int_reg;
     const uint16_t count_fp_reg;
 

@@ -20,12 +20,14 @@ namespace SST {
 namespace Vanadis {
 
 /*
-    A stack to manage allocation of registers. Registers on the stack are available.
+    A stack to manage allocation and rename of registers. Registers on the stack are available.
     The stack holds indices of available registers as a uint16_t.
 
     The stack begins in 'full' (all registers available) state.
     pop() removes a register from the stack
     push() places a register back on the stack
+
+    Actual register storage resides in the register file
 
     USAGE NOTES
      - push() and pop() do not do bounds checks. Caller must check if needed.

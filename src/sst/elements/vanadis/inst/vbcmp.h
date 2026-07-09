@@ -105,14 +105,18 @@ public:
             taken_address_ = calculateStandardNotTakenAddress();
         }
     }
-    void scalarExecute(SST::Output* output, VanadisRegisterFile* regFile) override
+    void scalarExecute(SST::Output* output, VanadisRegisterFile* reg_file) override
     {
         uint16_t phys_int_regs_in_0 = phys_int_regs_in[0];
         uint16_t phys_int_regs_in_1 = phys_int_regs_in[1];
         bool compare_result = false;
-        instOp(output, regFile, phys_int_regs_in_0, phys_int_regs_in_1,&compare_result);
+        instOp(output, reg_file, phys_int_regs_in_0, phys_int_regs_in_1, &compare_result);
         #ifdef VANADIS_BUILD_DEBUG
-        log(output, 16, 65535,compare_result,phys_int_regs_in_0,phys_int_regs_in_1);
+        log(output, 16, 65535, compare_result, phys_int_regs_in_0, phys_int_regs_in_1);
+        #endif
+        #ifdef VANADIS_BUILD_DEBUG
+        output->verbose(VANADIS_VERB_PIPELINE,
+            "(%" PRIu32 ") ---> EXECUTE: 0x0%" PRI_ADDR "\n", getHWThread(), getInstructionAddress());
         #endif
         markExecuted();
     }

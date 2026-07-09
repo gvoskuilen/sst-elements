@@ -294,8 +294,8 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
                         VanadisInstruction* next_ins = bundle->getInstructionByIndex(i)->clone();
 
                         #ifdef VANADIS_BUILD_DEBUG
-                        output_->verbose(CALL_INFO, 16, VANADIS_DBG_DECODER_FLG,
-                            "---> --> issuing ins addr: 0x0%" PRI_ADDR ", %s...\n", next_ins->getInstructionAddress(), next_ins->getInstCode());
+                        output_->verbose(VANADIS_VERB_PIPELINE,
+                            "(%" PRIu32 ") ---> DECODE: 0x0%" PRI_ADDR ", %s\n", hw_thr, next_ins->getInstructionAddress(), next_ins->getInstCode());
                         #endif
                         thread_rob->push(next_ins);
 
@@ -348,9 +348,8 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
                         VanadisInstruction* next_ins = delay_bundle->getInstructionByIndex(i)->clone();
 
                         #ifdef VANADIS_BUILD_DEBUG
-                        output_->verbose(
-                            CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "---> --> issuing ins addr: 0x0%" PRI_ADDR ", %s...\n",
-                            next_ins->getInstructionAddress(), next_ins->getInstCode());
+                        output_->verbose(VANADIS_VERB_PIPELINE,
+                            "(%" PRIu32 ") ---> DECODE: 0x0%" PRI_ADDR ", %s\n", hw_thr, next_ins->getInstructionAddress(), next_ins->getInstCode());
                         #endif
                         thread_rob->push(next_ins);
                     }
@@ -380,12 +379,11 @@ bool VanadisMIPSDecoder::tick( uint64_t cycle )
                 for ( uint32_t i = 0; i < bundle->getInstructionCount(); ++i ) {
                     VanadisInstruction* next_ins = bundle->getInstructionByIndex(i);
 
-                    #ifdef VANADIS_BUILD_DEBUG
-                    output_->verbose(
-                        CALL_INFO, 16, VANADIS_DBG_DECODER_FLG, "---> --> issuing ins addr: 0x0%" PRI_ADDR ", %s...\n",
-                        next_ins->getInstructionAddress(), next_ins->getInstCode());
-                    #endif
                     auto new_ins = next_ins->clone();
+                    #ifdef VANADIS_BUILD_DEBUG
+                    output_->verbose(VANADIS_VERB_PIPELINE,
+                        "(%" PRIu32 ") ---> DECODE: 0x0%" PRI_ADDR ", %s\n", hw_thr, new_ins->getInstructionAddress(), new_ins->getInstCode());
+                    #endif
                     thread_rob->push(new_ins);
                 }
 

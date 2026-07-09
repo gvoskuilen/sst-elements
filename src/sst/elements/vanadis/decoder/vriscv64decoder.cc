@@ -154,6 +154,10 @@ bool VanadisRISCV64Decoder::tick(uint64_t cycle)
                 }
 
                 auto new_ins = next_ins->clone();
+                #ifdef VANADIS_BUILD_DEBUG
+                output_->verbose(VANADIS_VERB_PIPELINE,
+                            "---> ISSUE: 0x0%" PRI_ADDR ", %s\n", new_ins->getInstructionAddress(), new_ins->getInstCode());
+                #endif
                 thread_rob->push(new_ins);
             }
 

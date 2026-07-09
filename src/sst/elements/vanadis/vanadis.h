@@ -50,9 +50,9 @@ namespace Vanadis {
 class VanadisInsCacheLoadRecord
 {
 public:
-    VanadisInsCacheLoadRecord(const uint32_t thr, const uint64_t addrStart, const uint16_t len) :
+    VanadisInsCacheLoadRecord(const uint32_t thr, const uint64_t addr_start, const uint16_t len) :
         hw_thr(thr),
-        addr(addrStart),
+        addr(addr_start),
         width(len),
         hasPayload(false)
     {
@@ -123,8 +123,8 @@ public:
         { "hardware_threads", "Number of hardware threads in this core", "1" },
         { "clock", "Core clock frequency", "1GHz" },
         { "reorder_slots", "Number of slots in the reorder buffer", "64"},
-        { "physical_integer_registers", "Number of physical integer registers per hardware thread", "128" },
-        { "physical_fp_registers", "Number of physical floating point registers per hardware thread", "128" },
+        { "physical_integer_registers", "Number of physical integer registers", "128" },
+        { "physical_fp_registers", "Number of physical floating point registers", "128" },
         { "integer_arith_units", "Number of integer arithemetic units", "2" },
         { "integer_arith_cycles", "Cycles per instruction for integer arithmetic", "2" },
         { "integer_div_units", "Number of integer division units", "1" },
@@ -219,12 +219,9 @@ private:
     void resetRegisterUseTemps(const int hw_thr, const uint16_t i_reg, const uint16_t f_reg);
 
     void assignRegistersToInstruction(
-        const uint16_t int_reg_count, const uint16_t fp_reg_count, VanadisInstruction* ins,
-        VanadisRegisterStack* int_regs, VanadisRegisterStack* fp_regs, VanadisISATable* isa_table);
+        const uint16_t int_reg_count, const uint16_t fp_reg_count, VanadisInstruction* ins, VanadisISATable* isa_table);
 
-    int checkInstructionResources(
-        VanadisInstruction* ins, VanadisRegisterStack* int_regs, VanadisRegisterStack* fp_regs,
-        VanadisISATable* isa_table);
+    int checkInstructionResources(VanadisInstruction* ins, VanadisISATable* isa_table);
 
     int recoverRetiredRegisters(
         VanadisInstruction* ins, VanadisRegisterStack* int_regs, VanadisRegisterStack* fp_regs,
@@ -327,10 +324,12 @@ private:
     // Save some state cycle-to-cycle to reduce recomputation
     std::vector<int> retire_rc_;
     std::vector<bool> issue_blocked_;
+    bool reset_issue_blocked_ = false;              // Freeing functional units or other resources shared among threads sets this to true
     std::vector<uint32_t> issue_scan_start_;        // For each thread, track which ROB index we should use to start scanning for issue
     std::vector<uint32_t> issue_oldest_rob_idx_;    // For each thread, track the oldest ROB index that is unissued
     std::vector<int> issue_unallocated_mem_seen_;
     std::vector<uint32_t> unissued_instructions_;   // How many instructions are waiting to be issued, per thread
+    std::vector<uint64_t> program_counter_;         // Track the next PC to be retired
 
     bool* halted_masks = nullptr;
     bool  enable_simt; //for future use

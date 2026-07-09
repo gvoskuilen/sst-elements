@@ -103,7 +103,7 @@ public:
     virtual void push(VanadisLoadInstruction* load_me) = 0;
     virtual void push(VanadisFenceInstruction* fence) = 0;
 
-    virtual void tick(uint64_t cycle) = 0;
+    virtual bool tick(uint64_t cycle) = 0;
     virtual void clearLSQByThreadID(const uint32_t thread) = 0;
 
     virtual void init(unsigned int phase) = 0;

@@ -73,7 +73,8 @@ public:
 
     uint16_t getUnitID() const { return fu_id; }
 
-    void tick(const uint64_t cycle, SST::Output* output, std::vector<VanadisRegisterFile*>& regFile) {
+    bool tick(const uint64_t cycle, SST::Output* output, std::vector<VanadisRegisterFile*>& regFile) {
+        bool unit_freed = false;
         int k_in=0;
         for(auto q_itr = pending_execute.begin(); q_itr != pending_execute.end();) {
             VanadisFunctionalUnitInsRecord* q_item = (*q_itr);
@@ -90,6 +91,7 @@ public:
 
                     // ready to execute, remove from pending queue
                     q_itr = pending_execute.erase(q_itr);
+                    unit_freed = true;
                 }
                 else
                 {
@@ -104,6 +106,7 @@ public:
         }
 
         accept_this_cycle = true;
+        return unit_freed;
     }
 
     void clearByHWThreadID(SST::Output* output, const uint16_t hw_thr) {

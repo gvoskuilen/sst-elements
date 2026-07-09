@@ -93,7 +93,7 @@ public:
 
     void scalarExecute(SST::Output* output, VanadisRegisterFile* regFile) override
     {
-		if(checkFrontOfROB())
+		if (checkFrontOfROB())
 		{
 		  	uint64_t flags_out = 0;
 			uint16_t phys_int_regs_out_0 = getPhysIntRegOut(0);

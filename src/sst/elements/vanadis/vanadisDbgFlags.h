@@ -16,6 +16,32 @@
 #ifndef _H_VANADIS_DBG_FLAGS
 #define _H_VANADIS_DBG_FLAGS
 
+// Masks allow categorizing output by type (32b mask)
+
+// Levels define how much information
+// Level 1: High level information that confirms simulation parameters, config, etc.
+// Level 2: Warnings that are likely not errors but could be
+// Level 3:
+// Per-cycle basic status per thread
+#define VANADIS_VERB_STATUS CALL_INFO, 4, 0
+// Reports pipeline actions taken
+#define VANADIS_VERB_PIPELINE    CALL_INFO, 5, 0
+// Reports pipeline actions detail
+#define VANADIS_VERB_PIPELINE_DETAIL CALL_INFO, 6, 0
+// Add pretty-print separators
+#define VANADIS_VERB_PRETTY CALL_INFO, 10, 0
+// Level 7:
+// Level 8:
+// Level 9:
+// Level 10:
+// Level 11:
+// Level 12:
+// Level 13:
+// Level 14:
+// Level 15:
+// Level 16:
+//
+
 #define VANADIS_DBG_INS_LDR_FLG  (1<<0)
 #define VANADIS_DBG_DECODER_FLG  (1<<1)
 #define VANADIS_DBG_ISSUE_FLG  (1<<2)

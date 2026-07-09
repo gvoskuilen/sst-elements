@@ -117,6 +117,8 @@ public:
 
         #ifdef VANADIS_BUILD_DEBUG
         const auto output_verbosity = output_->getVerboseLevel();
+        output_->verbose(VANADIS_VERB_PIPELINE, "( ) ---> FETCHED: 0x0%" PRI_ADDR "\n", resp->vAddr);
+
         if(output_verbosity >= 16) {
             output_->verbose(CALL_INFO, 16, VANADIS_DBG_INS_LDR_FLG, "[ins-loader] ---> response has: %" PRIu64 " bytes in payload\n",
                         (uint64_t)resp->data.size());
@@ -349,6 +351,7 @@ public:
 
 	            if (!found_pending_load) {
                     #ifdef VANADIS_BUILD_DEBUG
+                    output_->verbose(VANADIS_VERB_PIPELINE, "( ) ---> FETCH:   0x0%" PRI_ADDR "\n", line_start);
                     output_->verbose(CALL_INFO, 8, VANADIS_DBG_INS_LDR_FLG, "[ins-loader] ----> creating a load for line at 0x%" PRI_ADDR ", len=%" PRIu64 "\n",
                         line_start, cache_line_width_);
                     #endif

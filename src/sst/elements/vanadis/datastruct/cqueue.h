@@ -71,6 +71,10 @@ public:
         return data[calculateIndex(index)];
     }
 
+    T peekAtHead() {
+        return data[head];
+    }
+
     T pop()
     {
         #ifdef VANADIS_BUILD_DEBUG
@@ -82,6 +86,16 @@ public:
         count--;
 
         return pop_me;
+    }
+
+    void startScan(const size_t index) {
+        scan_index_ = calculateIndex(index);
+    }
+
+    T scan() {
+        T val = data[scan_index_];
+        if (max_capacity == ++scan_index_) scan_index_ = 0;
+        return val;
     }
 
     size_t size() const { return count; }
@@ -108,6 +122,8 @@ private:
     int count;
 
     T* data;
+
+    int scan_index_;
 
     bool max_power_two;
     int bit_mask;

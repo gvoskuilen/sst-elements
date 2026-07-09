@@ -124,12 +124,18 @@ public:
     }
 
     void tick(uint64_t cycle) override {
+        #ifdef VANADIS_BUILD_DEBUG
         output->verbose(CALL_INFO, 16, 0, "-> tick RoCC at cycle %" PRIu64 "\n", cycle);
+        #endif
         if(0 == roccCmd_q.size()) {
+            #ifdef VANADIS_BUILD_DEBUG
             output->verbose(CALL_INFO, 16, 0, "--> nothing to do in RoCC\n");
+            #endif
             return;
         }
+        #ifdef VANADIS_BUILD_DEBUG
         output->verbose(CALL_INFO, 16, 0, "busy? %d\n", busy);
+        #endif
 
         if (!busy) { // are we already processing something? If not:
             busy = true; // start processing something
@@ -214,7 +220,9 @@ public:
     // turn off busy bit so host knows this accelerator is no longer busy
     // send RoCC response back to host
     void completeRoCC(uint64_t rd_val) {
+        #ifdef VANADIS_BUILD_DEBUG
         output->verbose(CALL_INFO, 9, 0, "Finalize RoCC command w/ rd %" PRIu16 ", rd_val %" PRIu64 " \n", curr_cmd->inst->rd, rd_val);
+        #endif
         roccCmd_q.pop_front();
         busy = false;
         curr_resp = new RoCCResponse(curr_cmd->inst->rd, rd_val);
@@ -230,12 +238,16 @@ public:
         virtual ~StandardMemHandlers() {}
 
         virtual void handle(StandardMem::ReadResp* ev) {
+            #ifdef VANADIS_BUILD_DEBUG
             out->verbose(CALL_INFO, 9, 0, "-> handle read-response (virt-addr: 0x%" PRIx64 ")\n", ev->vAddr);
+            #endif
             RoCCCommand* rocc_cmd = rocc->curr_cmd; // need to grab the instruction that generated the read request
             // so that we know where to store the read response results
 
             if ( ev->getFail() ) {
+                #ifdef VANADIS_BUILD_DEBUG
                 out->verbose(CALL_INFO, 9, 0, "RoCC load failed, sending error code 1\n");
+                #endif
                 rocc->completeRoCC(1);
             }
 

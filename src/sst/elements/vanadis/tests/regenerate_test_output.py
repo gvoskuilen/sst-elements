@@ -43,7 +43,7 @@ for root, names, files in os.walk(path_output):
         elif sst_stdout.match(file):
             dst_path = os.path.join(test_path, "sst.stdout.gold")
             filetype = "sst_out"
-        else
+        else:
             filetype = "sst_err"
 
         src_path = os.path.join(root, file)

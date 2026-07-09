@@ -17,25 +17,25 @@ all processes have exited
  node0.cpu0:lsq.loads_executed.1 : Accumulator : Sum.u64 = 1309; SumSQ.u64 = 1309; Count.u64 = 1309; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu0:lsq.stores_executed.1 : Accumulator : Sum.u64 = 738; SumSQ.u64 = 738; Count.u64 = 738; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu0:lsq.fences_executed.1 : Accumulator : Sum.u64 = 25; SumSQ.u64 = 25; Count.u64 = 25; Min.u64 = 1; Max.u64 = 1; 
- node0.cpu0:lsq.bytes_read.1 : Accumulator : Sum.u64 = 11238; SumSQ.u64 = 83380; Count.u64 = 1925; Min.u64 = 1; Max.u64 = 8; 
+ node0.cpu0:lsq.bytes_read.1 : Accumulator : Sum.u64 = 11230; SumSQ.u64 = 83316; Count.u64 = 1924; Min.u64 = 1; Max.u64 = 8; 
  node0.cpu0:lsq.bytes_stored.1 : Accumulator : Sum.u64 = 5340; SumSQ.u64 = 41724; Count.u64 = 738; Min.u64 = 1; Max.u64 = 8; 
  node0.cpu0:lsq.store_buffer_entries.1 : Accumulator : Sum.u64 = 7096; SumSQ.u64 = 13422; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 8; 
  node0.cpu0:lsq.stores_in_flight.1 : Accumulator : Sum.u64 = 580823; SumSQ.u64 = 12267833; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 42; 
- node0.cpu0:lsq.loads_in_flight.1 : Accumulator : Sum.u64 = 375018; SumSQ.u64 = 732470; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 13; 
- node0.cpu0:lsq.operations_pending : Accumulator : Sum.u64 = 10581; SumSQ.u64 = 17413; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 9; 
+ node0.cpu0:lsq.loads_in_flight.1 : Accumulator : Sum.u64 = 375014; SumSQ.u64 = 732458; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 13; 
+ node0.cpu0:lsq.operations_pending : Accumulator : Sum.u64 = 10580; SumSQ.u64 = 17412; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 9; 
  node0.cpu0.instructions_retired.1 : Accumulator : Sum.u64 = 6310; SumSQ.u64 = 12112; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 4; 
  node0.cpu0.instructions_decoded.1 : Accumulator : Sum.u64 = 37554; SumSQ.u64 = 136288; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 6; 
- node0.cpu0.instructions_issued.1 : Accumulator : Sum.u64 = 12736; SumSQ.u64 = 29384; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 4; 
+ node0.cpu0.instructions_issued.1 : Accumulator : Sum.u64 = 12732; SumSQ.u64 = 29384; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 4; 
  node0.cpu0.loads_issued.1 : Accumulator : Sum.u64 = 2071; SumSQ.u64 = 2071; Count.u64 = 2071; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu0.stores_issued.1 : Accumulator : Sum.u64 = 778; SumSQ.u64 = 778; Count.u64 = 778; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu0.branch_mispredicts.1 : Accumulator : Sum.u64 = 844; SumSQ.u64 = 844; Count.u64 = 844; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu0.branches.1 : Accumulator : Sum.u64 = 1663; SumSQ.u64 = 1663; Count.u64 = 1663; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu0.active_cycles.1 : Accumulator : Sum.u64 = 485828; SumSQ.u64 = 485828; Count.u64 = 485828; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu0.idle_cycles.1 : Accumulator : Sum.u64 = 11; SumSQ.u64 = 11; Count.u64 = 11; Min.u64 = 1; Max.u64 = 1; 
- node0.cpu0.rob_slots_in_use.1 : Accumulator : Sum.u64 = 21584443; SumSQ.u64 = 1332703017; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 63; 
+ node0.cpu0.rob_slots_in_use.1 : Accumulator : Sum.u64 = 21584447; SumSQ.u64 = 1332703025; Count.u64 = 485828; Min.u64 = 0; Max.u64 = 63; 
  node0.cpu0.rob_cleared_entries.1 : Accumulator : Sum.u64 = 31181; SumSQ.u64 = 1550003; Count.u64 = 844; Min.u64 = 0; Max.u64 = 62; 
  node0.cpu0.syscall-cycles.1 : Accumulator : Sum.u64 = 79177; SumSQ.u64 = 79177; Count.u64 = 79177; Min.u64 = 1; Max.u64 = 1; 
- node0.cpu0.phys_int_reg_in_use.1 : Accumulator : Sum.u64 = 19096693; SumSQ.u64 = 758297527; Count.u64 = 485828; Min.u64 = 35; Max.u64 = 63; 
+ node0.cpu0.phys_int_reg_in_use.1 : Accumulator : Sum.u64 = 19096652; SumSQ.u64 = 758293848; Count.u64 = 485828; Min.u64 = 35; Max.u64 = 63; 
  node0.cpu0.phys_fp_reg_in_use.1 : Accumulator : Sum.u64 = 15546496; SumSQ.u64 = 497487872; Count.u64 = 485828; Min.u64 = 32; Max.u64 = 32; 
  node0.cpu1:decoder:branch_unit.branch_cache_hit.1 : Accumulator : Sum.u64 = 1855; SumSQ.u64 = 1855; Count.u64 = 1855; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu1:decoder:branch_unit.branch_cache_miss.1 : Accumulator : Sum.u64 = 2793; SumSQ.u64 = 2793; Count.u64 = 2793; Min.u64 = 1; Max.u64 = 1; 
@@ -61,7 +61,7 @@ all processes have exited
  node0.cpu1:lsq.operations_pending : Accumulator : Sum.u64 = 4444; SumSQ.u64 = 8212; Count.u64 = 203888; Min.u64 = 0; Max.u64 = 9; 
  node0.cpu1.instructions_retired.1 : Accumulator : Sum.u64 = 3394; SumSQ.u64 = 6494; Count.u64 = 203888; Min.u64 = 0; Max.u64 = 4; 
  node0.cpu1.instructions_decoded.1 : Accumulator : Sum.u64 = 20130; SumSQ.u64 = 72760; Count.u64 = 203888; Min.u64 = 0; Max.u64 = 8; 
- node0.cpu1.instructions_issued.1 : Accumulator : Sum.u64 = 7020; SumSQ.u64 = 16444; Count.u64 = 203888; Min.u64 = 0; Max.u64 = 4; 
+ node0.cpu1.instructions_issued.1 : Accumulator : Sum.u64 = 7020; SumSQ.u64 = 16450; Count.u64 = 203888; Min.u64 = 0; Max.u64 = 4; 
  node0.cpu1.loads_issued.1 : Accumulator : Sum.u64 = 1191; SumSQ.u64 = 1191; Count.u64 = 1191; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu1.stores_issued.1 : Accumulator : Sum.u64 = 398; SumSQ.u64 = 398; Count.u64 = 398; Min.u64 = 1; Max.u64 = 1; 
  node0.cpu1.branch_mispredicts.1 : Accumulator : Sum.u64 = 476; SumSQ.u64 = 476; Count.u64 = 476; Min.u64 = 1; Max.u64 = 1; 
@@ -71,6 +71,6 @@ all processes have exited
  node0.cpu1.rob_slots_in_use.1 : Accumulator : Sum.u64 = 7871699; SumSQ.u64 = 480930839; Count.u64 = 203888; Min.u64 = 0; Max.u64 = 63; 
  node0.cpu1.rob_cleared_entries.1 : Accumulator : Sum.u64 = 16673; SumSQ.u64 = 812983; Count.u64 = 477; Min.u64 = 0; Max.u64 = 62; 
  node0.cpu1.syscall-cycles.1 : Accumulator : Sum.u64 = 4616; SumSQ.u64 = 4616; Count.u64 = 4616; Min.u64 = 1; Max.u64 = 1; 
- node0.cpu1.phys_int_reg_in_use.1 : Accumulator : Sum.u64 = 8727677; SumSQ.u64 = 384104403; Count.u64 = 203888; Min.u64 = 35; Max.u64 = 63; 
+ node0.cpu1.phys_int_reg_in_use.1 : Accumulator : Sum.u64 = 8727657; SumSQ.u64 = 384102581; Count.u64 = 203888; Min.u64 = 35; Max.u64 = 63; 
  node0.cpu1.phys_fp_reg_in_use.1 : Accumulator : Sum.u64 = 6524416; SumSQ.u64 = 208781312; Count.u64 = 203888; Min.u64 = 32; Max.u64 = 32; 
 Simulation is complete, simulated time: 211.34 us

@@ -57,8 +57,8 @@ public:
             isa_int_regs_in[1] = value_reg;
             isa_int_regs_in_mask_ = (1ULL << memory_addr) | (1ULL << value_reg);
 
-            if ( MEM_TRANSACTION_LLSC_STORE == accessT ) { 
-                isa_int_regs_out[0] = value_reg; 
+            if ( MEM_TRANSACTION_LLSC_STORE == accessT ) {
+                isa_int_regs_out[0] = value_reg;
                 isa_int_regs_out_mask_ = (1ULL << value_reg);
             }
         } break;
@@ -69,8 +69,8 @@ public:
             isa_int_regs_in_mask_ = (1ULL << memory_addr);
             isa_fp_regs_in_mask_ = (1ULL << value_reg);
 
-            if ( MEM_TRANSACTION_LLSC_STORE == accessT ) { 
-                isa_fp_regs_out[0] = value_reg; 
+            if ( MEM_TRANSACTION_LLSC_STORE == accessT ) {
+                isa_fp_regs_out[0] = value_reg;
                 isa_fp_regs_out_mask_ = (1ULL << value_reg);
             }
 
